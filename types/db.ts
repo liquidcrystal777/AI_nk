@@ -10,12 +10,12 @@ export type SettingsRecord = {
 export type WordRecord = {
   id?: number;
   spell: string;
-  pronunciation?: string;
   meaning: string;
-  prompt: string;
+  originalSentence: string;
+  usageExplanation: string;
+  deodorizedMeaning: string;
   year: string;
   sourceTextId: string;
-  originalSentence: string[];
   status: WordStatus;
   reviewCount: number;
   lastReviewTime?: number;
@@ -24,12 +24,12 @@ export type WordRecord = {
 
 export type RecordDraft = {
   spell: string;
-  pronunciation: string;
   meaning: string;
-  prompt: string;
+  originalSentence: string;
+  usageExplanation: string;
+  deodorizedMeaning: string;
   year: string;
   sourceTextId: string;
-  originalSentence: string[];
 };
 
 export type BrowseFilters = {
