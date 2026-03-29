@@ -1,23 +1,29 @@
 import type { AiWordDraftPayload } from "@/types/ai";
 
 const ANALYZER_SYSTEM_PROMPT = [
-  "你现在的角色是考研英语语义深度分析器。",
-  "你的任务是从用户提供的考研英语上下文里提取生词，并输出可直接写入前端表单的结果。",
+  "你现在的角色是考研英语真题单词卡生成器。",
+  "你会收到一个目标单词、考研年份、文章来源编号，以及该篇阅读正文。",
+  "你只能基于提供的正文判断该单词在该篇文章中的真实用法。",
   "你只能返回 JSON，不要返回 Markdown 代码块，不要补充解释，不要输出多余文本。",
-  'JSON 必须严格包含四个字段：spell、pronunciation、meaning、originalSentence。',
-  '字段格式必须如下：{"spell":"提取出的生词首字母大写","pronunciation":"准确音标","meaning":"【态度标签 (+/-)】词性. 精准释义 (附带考研陷阱点拨)","originalSentence":"[原句] 给出考研年份文章原句\\n[记忆] 词根拆解与暴力联想"}',
+  'JSON 必须严格包含五个字段：spell、meaning、originalSentence、usageExplanation、deodorizedMeaning。',
+  '字段格式必须如下：{"spell":"Reminder","meaning":"提醒","originalSentence":"原文中的完整句子","usageExplanation":"该词在这句中的准确中文释义与作用","deodorizedMeaning":"去掉修辞和语气后的朴素表达"}',
+  "要求：meaning 只能写极简中文释义；originalSentence 必须逐字来自提供正文；不得返回音标；不得返回英文释义；不得缺字段。",
 ].join("\n");
 
 export function buildWordGenerationPrompt(params: {
-  prompt: string;
+  spell: string;
   year: string;
   sourceTextId: string;
+  sourceText: string;
 }) {
   return [
-    "请基于以下信息完成分析，并严格按 System Prompt 指定的 JSON 格式输出。",
+    "请基于以下真题正文生成单词卡。",
+    `目标单词：${params.spell}`,
     `考研年份：${params.year}`,
     `文章来源：${params.sourceTextId}`,
-    `用户提示词：${params.prompt}`,
+    "正文开始",
+    params.sourceText,
+    "正文结束",
   ].join("\n");
 }
 
@@ -43,14 +49,16 @@ function buildRequestInit(params: {
   apiKey: string;
   endpoint: string;
   modelName: string;
-  prompt: string;
+  spell: string;
   year: string;
   sourceTextId: string;
+  sourceText: string;
 }): RequestInit {
   const prompt = buildWordGenerationPrompt({
-    prompt: params.prompt,
+    spell: params.spell,
     year: params.year,
     sourceTextId: params.sourceTextId,
+    sourceText: params.sourceText,
   });
 
   if (isAnthropicEndpoint(params.endpoint)) {
@@ -64,7 +72,7 @@ function buildRequestInit(params: {
       body: JSON.stringify({
         model: params.modelName,
         system: ANALYZER_SYSTEM_PROMPT,
-        max_tokens: 1200,
+        max_tokens: 1600,
         messages: [
           {
             role: "user",
@@ -113,9 +121,10 @@ export async function generateWordDraft(params: {
   apiKey: string;
   baseUrl: string;
   modelName: string;
-  prompt: string;
+  spell: string;
   year: string;
   sourceTextId: string;
+  sourceText: string;
 }): Promise<AiWordDraftPayload> {
   const endpoint = normalizeBaseUrl(params.baseUrl, params.modelName);
   const response = await fetch(

@@ -1,4 +1,4 @@
-import { normalizeSentenceArray } from "@/lib/utils/text";
+import { normalizeMultilineText, normalizeSingleLineText } from "@/lib/utils/text";
 import type { RecordDraft } from "@/types/db";
 
 function extractJsonString(input: string) {
@@ -7,24 +7,26 @@ function extractJsonString(input: string) {
 }
 
 function assertWordDraftPayload(payload: Record<string, unknown>) {
-  const spell = String(payload.spell ?? "").trim();
-  const pronunciation = String(payload.pronunciation ?? "").trim();
-  const meaning = String(payload.meaning ?? "").trim();
-  const originalSentence = normalizeSentenceArray(payload.originalSentence);
+  const spell = normalizeSingleLineText(payload.spell);
+  const meaning = normalizeSingleLineText(payload.meaning);
+  const originalSentence = normalizeMultilineText(payload.originalSentence);
+  const usageExplanation = normalizeMultilineText(payload.usageExplanation);
+  const deodorizedMeaning = normalizeMultilineText(payload.deodorizedMeaning);
 
-  if (!spell || !pronunciation || !meaning || originalSentence.length === 0) {
-    throw new Error("AI 返回的 JSON 字段不完整，请重试或调整提示词。");
+  if (!spell || !meaning || !originalSentence || !usageExplanation || !deodorizedMeaning) {
+    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、极简释义、原句、释义、去味。 ");
   }
 
   return {
     spell,
-    pronunciation,
     meaning,
     originalSentence,
+    usageExplanation,
+    deodorizedMeaning,
   };
 }
 
-export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "prompt" | "year" | "sourceTextId">): RecordDraft {
+export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "year" | "sourceTextId">): RecordDraft {
   let payload: Record<string, unknown> = {};
 
   if (typeof input === "string") {
@@ -48,7 +50,6 @@ export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "promp
 
   return {
     ...normalized,
-    prompt: context.prompt,
     year: context.year,
     sourceTextId: context.sourceTextId,
   };

@@ -3,6 +3,8 @@
 import { PrimaryButton } from "@/components/common/primary-button";
 import type { RecordDraft } from "@/types/db";
 
+const SOURCE_TEXT_OPTIONS = ["Text1", "Text2", "Text3", "Text4"] as const;
+
 type RecordPromptFormProps = {
   draft: RecordDraft;
   error: string;
@@ -23,18 +25,18 @@ export function RecordPromptForm({
   return (
     <div className="space-y-4 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm">
       <div className="space-y-2">
-        <label className="text-sm font-semibold text-neutral-800">提示词</label>
-        <textarea
-          value={draft.prompt}
-          onChange={(event) => onFieldChange("prompt", event.target.value)}
-          placeholder="例如：请根据 2006 年阅读 Text4 里的 reminder 生成单词卡片"
-          className="min-h-32 w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none"
+        <label className="text-sm font-semibold text-neutral-800">单词</label>
+        <input
+          value={draft.spell}
+          onChange={(event) => onFieldChange("spell", event.target.value)}
+          placeholder="如 reminder"
+          className="w-full rounded-2xl border border-neutral-200 px-4 py-3 text-base outline-none"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-neutral-800">choose year</label>
+          <label className="text-sm font-semibold text-neutral-800">年份</label>
           <input
             value={draft.year}
             onChange={(event) => onFieldChange("year", event.target.value)}
@@ -44,13 +46,18 @@ export function RecordPromptForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-neutral-800">choose text</label>
-          <input
+          <label className="text-sm font-semibold text-neutral-800">文章</label>
+          <select
             value={draft.sourceTextId}
             onChange={(event) => onFieldChange("sourceTextId", event.target.value)}
-            placeholder="如 Text4"
-            className="w-full rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none"
-          />
+            className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm outline-none"
+          >
+            {SOURCE_TEXT_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
         </div>
       </div>
 

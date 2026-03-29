@@ -1,39 +1,51 @@
-import * as pdfjsLib from "pdfjs-dist/build/pdf.mjs";
-
-const PDF_WORKER_SRC = new URL(
-  "pdfjs-dist/build/pdf.worker.mjs",
-  import.meta.url,
-).toString();
-
-let workerConfigured = false;
-
-function ensureWorker() {
-  if (!workerConfigured) {
-    pdfjsLib.GlobalWorkerOptions.workerSrc = PDF_WORKER_SRC;
-    workerConfigured = true;
-  }
-}
-
-function normalizePdfText(input: string) {
+function normalizeExamText(input: string) {
   return input
     .replace(/\u0000/g, "")
+    .replace(/\r\n/g, "\n")
     .replace(/[ \t]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
 }
 
-export async function readExamPaperText(year: string) {
-  const normalizedYear = year.trim();
+function stripLatexCommands(input: string) {
+  return input
+    .replace(/%.*$/gm, "")
+    .replace(/\\\\/g, "\n")
+    .replace(/\\(bta|TiGanSpace|newpage)\b/g, "\n")
+    .replace(/\\(section|subsection|textbf|emph)\{([^}]*)\}/g, "$2")
+    .replace(/\\(begin|end)\{[^}]*\}(\[[^\]]*\])?/g, "\n")
+    .replace(/\\(item|fourchoices|lineread)\b/g, "\n")
+    .replace(/\\[a-zA-Z]+(\[[^\]]*\])?(\{[^}]*\})?/g, " ")
+    .replace(/[{}]/g, " ");
+}
 
-  if (!normalizedYear) {
-    throw new Error("请选择考研年份后再生成卡片");
+async function readTextFile(path: string) {
+  const response = await fetch(path);
+  if (!response.ok) {
+    return null;
   }
 
-  ensureWorker();
+  return response.text();
+}
 
-  const response = await fetch(`/exam-papers/${normalizedYear}.pdf`);
+async function readTexExamPaperText(year: string) {
+  const texText = await readTextFile(`/exam-papers/${year}.tex`);
+  if (!texText) {
+    return null;
+  }
+
+  return normalizeExamText(stripLatexCommands(texText));
+}
+
+async function readPdfExamPaperText(year: string) {
+  const pdfjsLib = await import("pdfjs-dist/build/pdf.mjs");
+
+  const workerSrc = new URL("pdfjs-dist/build/pdf.worker.mjs", import.meta.url).toString();
+  pdfjsLib.GlobalWorkerOptions.workerSrc = workerSrc;
+
+  const response = await fetch(`/exam-papers/${year}.pdf`);
   if (!response.ok) {
-    throw new Error(`未找到 ${normalizedYear} 年真题 PDF，请检查 public/exam-papers/${normalizedYear}.pdf`);
+    return null;
   }
 
   const pdfData = await response.arrayBuffer();
@@ -50,5 +62,25 @@ export async function readExamPaperText(year: string) {
     pageTexts.push(items.join(" "));
   }
 
-  return normalizePdfText(pageTexts.join("\n\n"));
+  return normalizeExamText(pageTexts.join("\n\n"));
+}
+
+export async function readExamPaperText(year: string) {
+  const normalizedYear = year.trim();
+
+  if (!normalizedYear) {
+    throw new Error("请选择考研年份后再生成卡片");
+  }
+
+  const texText = await readTexExamPaperText(normalizedYear);
+  if (texText) {
+    return texText;
+  }
+
+  const pdfText = await readPdfExamPaperText(normalizedYear);
+  if (pdfText) {
+    return pdfText;
+  }
+
+  throw new Error(`未找到 ${normalizedYear} 年真题源文件，请检查 public/exam-papers/${normalizedYear}.tex 或 ${normalizedYear}.pdf`);
 }

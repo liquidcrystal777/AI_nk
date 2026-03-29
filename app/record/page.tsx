@@ -11,20 +11,8 @@ import { useSettings } from "@/lib/hooks/use-settings";
 export default function RecordPage() {
   const router = useRouter();
   const { settings } = useSettings();
-  const {
-    step,
-    draft,
-    error,
-    isGenerating,
-    isSaving,
-    canGenerate,
-    updateField,
-    updateSentence,
-    addSentence,
-    removeSentence,
-    generate,
-    save,
-  } = useRecordDraft(settings);
+  const { step, draft, error, isGenerating, isSaving, canGenerate, updateField, generate, save } =
+    useRecordDraft(settings);
 
   async function handleConfirm() {
     const ok = await save();
@@ -52,16 +40,7 @@ export default function RecordPage() {
             onGenerate={generate}
           />
         ) : (
-          <WordEditorForm
-            draft={draft}
-            error={error}
-            isSaving={isSaving}
-            onFieldChange={updateField}
-            onSentenceChange={updateSentence}
-            onAddSentence={addSentence}
-            onRemoveSentence={removeSentence}
-            onSave={handleConfirm}
-          />
+          <WordEditorForm draft={draft} error={error} isSaving={isSaving} onFieldChange={updateField} onSave={handleConfirm} />
         )}
       </main>
     </AppShell>

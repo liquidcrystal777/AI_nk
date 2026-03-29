@@ -16,6 +16,21 @@ function findHeadingStart(text: string, index: number) {
   return match?.index ?? -1;
 }
 
+function findReadingEnd(text: string, startIndex: number) {
+  const endMarkers = [/(?:^|\n)\s*Part\s*B\b/i, /(?:^|\n)\s*Writing\b/i];
+
+  const candidates = endMarkers
+    .map((pattern) => {
+      const scoped = new RegExp(pattern.source, pattern.flags.includes("g") ? pattern.flags : `${pattern.flags}g`);
+      scoped.lastIndex = startIndex;
+      const match = scoped.exec(text);
+      return match?.index ?? -1;
+    })
+    .filter((value) => value > startIndex);
+
+  return candidates.length ? Math.min(...candidates) : text.length;
+}
+
 export function extractSourceTextFromPaper(fullText: string, sourceTextId: string) {
   const normalizedText = normalizeWhitespace(fullText);
   const match = sourceTextId.trim().match(/^Text\s*([1-4])$/i);
@@ -28,10 +43,10 @@ export function extractSourceTextFromPaper(fullText: string, sourceTextId: strin
   const startIndex = findHeadingStart(normalizedText, textNumber);
 
   if (startIndex < 0) {
-    throw new Error(`无法在 PDF 中定位 ${sourceTextId}，请检查该年份 PDF 的文字结构`);
+    throw new Error(`无法在真题正文中定位 ${sourceTextId}，请检查该年份 tex/pdf 的文本结构`);
   }
 
-  let endIndex = normalizedText.length;
+  let endIndex = findReadingEnd(normalizedText, startIndex);
   for (let next = textNumber + 1; next <= 4; next += 1) {
     const nextIndex = findHeadingStart(normalizedText, next);
     if (nextIndex > startIndex) {

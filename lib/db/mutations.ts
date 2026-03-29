@@ -1,6 +1,7 @@
 import { db } from "@/lib/db/db";
 import { getNextReviewTime, getNextStatus } from "@/lib/review/state-machine";
 import { DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
+import { normalizeMultilineText, normalizeSingleLineText } from "@/lib/utils/text";
 import type { RecordDraft, SettingsRecord, WordRecord } from "@/types/db";
 import type { ReviewAction } from "@/types/review";
 
@@ -16,13 +17,13 @@ export async function createWord(draft: RecordDraft) {
   const now = Date.now();
 
   return db.words.add({
-    spell: draft.spell.trim(),
-    pronunciation: draft.pronunciation.trim(),
-    meaning: draft.meaning.trim(),
-    prompt: draft.prompt.trim(),
-    year: draft.year.trim(),
-    sourceTextId: draft.sourceTextId.trim(),
-    originalSentence: draft.originalSentence.map((sentence) => sentence.trim()).filter(Boolean),
+    spell: normalizeSingleLineText(draft.spell),
+    meaning: normalizeSingleLineText(draft.meaning),
+    originalSentence: normalizeMultilineText(draft.originalSentence),
+    usageExplanation: normalizeMultilineText(draft.usageExplanation),
+    deodorizedMeaning: normalizeMultilineText(draft.deodorizedMeaning),
+    year: normalizeSingleLineText(draft.year),
+    sourceTextId: normalizeSingleLineText(draft.sourceTextId),
     status: "new",
     reviewCount: 0,
     nextReviewTime: now,

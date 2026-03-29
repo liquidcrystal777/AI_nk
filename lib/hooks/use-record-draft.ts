@@ -4,17 +4,19 @@ import { useMemo, useState } from "react";
 import { generateWordDraft } from "@/lib/ai/client";
 import { parseWordDraft } from "@/lib/ai/parser";
 import { createWord } from "@/lib/db/mutations";
+import { readExamPaperText } from "@/lib/exam-paper-reader";
+import { extractSourceTextFromPaper } from "@/lib/exam-text-segmentation";
 import { DEFAULT_SETTINGS } from "@/lib/utils/constants";
 import type { RecordDraft } from "@/types/db";
 
 const emptyDraft: RecordDraft = {
   spell: "",
-  pronunciation: "",
   meaning: "",
-  prompt: "",
+  originalSentence: "",
+  usageExplanation: "",
+  deodorizedMeaning: "",
   year: "",
-  sourceTextId: "",
-  originalSentence: [""],
+  sourceTextId: "Text1",
 };
 
 export function useRecordDraft(settings = DEFAULT_SETTINGS) {
@@ -25,12 +27,12 @@ export function useRecordDraft(settings = DEFAULT_SETTINGS) {
   const [error, setError] = useState("");
 
   const canGenerate = useMemo(() => {
-    return Boolean(draft.prompt.trim() && draft.year.trim() && draft.sourceTextId.trim());
-  }, [draft.prompt, draft.year, draft.sourceTextId]);
+    return Boolean(draft.spell.trim() && draft.year.trim() && draft.sourceTextId.trim());
+  }, [draft.spell, draft.year, draft.sourceTextId]);
 
   async function generate() {
     if (!canGenerate) {
-      setError("请先填写提示词、年份和文章来源");
+      setError("请先填写单词、年份和文章来源");
       return;
     }
 
@@ -43,25 +45,24 @@ export function useRecordDraft(settings = DEFAULT_SETTINGS) {
     setIsGenerating(true);
 
     try {
+      const fullText = await readExamPaperText(draft.year);
+      const sourceText = extractSourceTextFromPaper(fullText, draft.sourceTextId);
       const response = await generateWordDraft({
         apiKey: settings.aiApiKey,
         baseUrl: settings.aiBaseUrl,
         modelName: settings.aiModelName,
-        prompt: draft.prompt,
+        spell: draft.spell,
         year: draft.year,
         sourceTextId: draft.sourceTextId,
+        sourceText,
       });
 
       const nextDraft = parseWordDraft(response, {
-        prompt: draft.prompt,
         year: draft.year,
         sourceTextId: draft.sourceTextId,
       });
 
-      setDraft({
-        ...nextDraft,
-        originalSentence: nextDraft.originalSentence.length ? nextDraft.originalSentence : [""],
-      });
+      setDraft(nextDraft);
       setStep("edit");
     } catch (generationError) {
       setError(generationError instanceof Error ? generationError.message : "生成失败，请稍后重试");
@@ -74,41 +75,12 @@ export function useRecordDraft(settings = DEFAULT_SETTINGS) {
     setDraft((prev) => ({ ...prev, [key]: value }));
   }
 
-  function updateSentence(index: number, value: string) {
-    setDraft((prev) => ({
-      ...prev,
-      originalSentence: prev.originalSentence.map((sentence, sentenceIndex) => {
-        return sentenceIndex === index ? value : sentence;
-      }),
-    }));
-  }
-
-  function addSentence() {
-    setDraft((prev) => ({
-      ...prev,
-      originalSentence: [...prev.originalSentence, ""],
-    }));
-  }
-
-  function removeSentence(index: number) {
-    setDraft((prev) => ({
-      ...prev,
-      originalSentence:
-        prev.originalSentence.length === 1
-          ? [""]
-          : prev.originalSentence.filter((_, sentenceIndex) => sentenceIndex !== index),
-    }));
-  }
-
   async function save() {
     setIsSaving(true);
     setError("");
 
     try {
-      await createWord({
-        ...draft,
-        originalSentence: draft.originalSentence.filter((sentence) => sentence.trim()),
-      });
+      await createWord(draft);
       reset();
       return true;
     } catch (saveError) {
@@ -134,9 +106,6 @@ export function useRecordDraft(settings = DEFAULT_SETTINGS) {
     canGenerate,
     setStep,
     updateField,
-    updateSentence,
-    addSentence,
-    removeSentence,
     generate,
     save,
     reset,

@@ -14,19 +14,8 @@ function statusLabel(status: WordRecord["status"]) {
   return "掌握";
 }
 
-function extractPartOfSpeech(meaning: string) {
-  const match = meaning.match(/(?:^|】)\s*([a-z]{1,5}\.)/i);
-  return match?.[1]?.toLowerCase() ?? "";
-}
-
-function splitMeaning(meaning: string) {
-  const cleaned = meaning.replace(/【[^】]+】\s*/g, "").trim();
-  return cleaned || meaning;
-}
-
 export function WordListItem({ word }: { word: WordRecord }) {
   const [expanded, setExpanded] = useState(false);
-  const partOfSpeech = extractPartOfSpeech(word.meaning);
 
   return (
     <SectionCard className="border-[1.5px] p-0 shadow-[0_10px_24px_rgba(102,8,116,0.06)]">
@@ -36,22 +25,11 @@ export function WordListItem({ word }: { word: WordRecord }) {
         className="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
       >
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-start gap-3">
-            <div className="text-3xl font-black tracking-tight text-neutral-900">{word.spell}</div>
-            {partOfSpeech ? (
-              <span
-                className="rounded-xl px-2.5 py-1 text-xs font-bold text-white"
-                style={{ backgroundColor: APP_PURPLE }}
-              >
-                [{partOfSpeech}]
-              </span>
-            ) : null}
-          </div>
-          <div className="mt-1 text-sm text-neutral-500">{word.pronunciation || "暂无音标"}</div>
+          <div className="text-3xl font-black tracking-tight text-neutral-900">{word.spell}</div>
           <div className="mt-3 inline-flex rounded-xl bg-[rgba(102,8,116,0.08)] px-3 py-1 text-xs font-bold" style={{ color: APP_PURPLE }}>
             【极简释义】
           </div>
-          <div className="mt-2 text-sm leading-7 text-neutral-700">{splitMeaning(word.meaning)}</div>
+          <div className="mt-2 text-sm leading-7 text-neutral-700">{word.meaning}</div>
         </div>
         {expanded ? <ChevronUp size={18} className="mt-1 shrink-0" /> : <ChevronDown size={18} className="mt-1 shrink-0" />}
       </button>
@@ -69,18 +47,21 @@ export function WordListItem({ word }: { word: WordRecord }) {
             <div className="inline-flex rounded-xl bg-[rgba(102,8,116,0.08)] px-3 py-1 text-xs font-bold" style={{ color: APP_PURPLE }}>
               【考点/逻辑】
             </div>
-            <ul className="mt-3 space-y-3 text-sm leading-7 text-neutral-700">
-              {word.originalSentence.map((sentence, index) => (
-                <li key={`${word.id}-${index}`} className="flex gap-3">
-                  <span className="font-bold text-neutral-900">{index + 1}.</span>
-                  <div className="min-w-0">
-                    <span className="font-semibold text-neutral-900">原句：</span>
-                    <span className="ml-2 italic">{sentence}</span>
-                    {index === 0 ? <span className="ml-2 text-neutral-500">({word.year}-{word.sourceTextId})</span> : null}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="mt-3 space-y-3 text-sm leading-7 text-neutral-700">
+              <div>
+                <span className="font-semibold text-neutral-900">原句：</span>
+                <span className="ml-2 italic">{word.originalSentence || "暂无原句"}</span>
+                <span className="ml-2 text-neutral-500">({word.year}-{word.sourceTextId})</span>
+              </div>
+              <div>
+                <span className="font-semibold text-neutral-900">释义：</span>
+                <span className="ml-2">{word.usageExplanation || "暂无释义"}</span>
+              </div>
+              <div>
+                <span className="font-semibold text-neutral-900">去味：</span>
+                <span className="ml-2">{word.deodorizedMeaning || "暂无去味"}</span>
+              </div>
+            </div>
           </div>
         </div>
       ) : null}

@@ -34,7 +34,7 @@ export async function getBrowseWords(filters: BrowseFilters): Promise<WordRecord
   if (filters.keyword) {
     const keyword = filters.keyword.toLowerCase();
     words = words.filter((word) => {
-      return [word.spell, word.meaning, word.pronunciation ?? "", ...word.originalSentence]
+      return [word.spell, word.meaning, word.originalSentence, word.usageExplanation, word.deodorizedMeaning]
         .join(" ")
         .toLowerCase()
         .includes(keyword);
