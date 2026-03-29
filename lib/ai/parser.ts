@@ -6,6 +6,24 @@ function extractJsonString(input: string) {
   return match?.[0] ?? input;
 }
 
+function assertWordDraftPayload(payload: Record<string, unknown>) {
+  const spell = String(payload.spell ?? "").trim();
+  const pronunciation = String(payload.pronunciation ?? "").trim();
+  const meaning = String(payload.meaning ?? "").trim();
+  const originalSentence = normalizeSentenceArray(payload.originalSentence);
+
+  if (!spell || !pronunciation || !meaning || originalSentence.length === 0) {
+    throw new Error("AI 返回的 JSON 字段不完整，请重试或调整提示词。");
+  }
+
+  return {
+    spell,
+    pronunciation,
+    meaning,
+    originalSentence,
+  };
+}
+
 export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "prompt" | "year" | "sourceTextId">): RecordDraft {
   let payload: Record<string, unknown> = {};
 
@@ -14,7 +32,7 @@ export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "promp
     try {
       payload = JSON.parse(jsonString) as Record<string, unknown>;
     } catch {
-      payload = {};
+      throw new Error("AI 返回内容无法解析为 JSON，请重试。");
     }
   } else if (typeof input === "object" && input) {
     payload = input as Record<string, unknown>;
@@ -22,13 +40,14 @@ export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "promp
     if (typeof payload.raw === "string") {
       return parseWordDraft(payload.raw, context);
     }
+  } else {
+    throw new Error("AI 返回内容为空，请重试。");
   }
 
+  const normalized = assertWordDraftPayload(payload);
+
   return {
-    spell: String(payload.spell ?? "").trim(),
-    pronunciation: String(payload.pronunciation ?? "").trim(),
-    meaning: String(payload.meaning ?? "").trim(),
-    originalSentence: normalizeSentenceArray(payload.originalSentence),
+    ...normalized,
     prompt: context.prompt,
     year: context.year,
     sourceTextId: context.sourceTextId,
