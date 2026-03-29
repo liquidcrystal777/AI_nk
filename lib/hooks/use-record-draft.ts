@@ -11,9 +11,14 @@ import type { RecordDraft } from "@/types/db";
 
 const emptyDraft: RecordDraft = {
   spell: "",
+  partOfSpeech: "",
   meaning: "",
+  confusingMeaning1: "",
+  confusingMeaning2: "",
+  confusingMeaning3: "",
   originalSentence: "",
   usageExplanation: "",
+  sentiment: "",
   deodorizedMeaning: "",
   year: "",
   sourceTextId: "Text1",

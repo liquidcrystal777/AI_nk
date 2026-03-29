@@ -10,9 +10,14 @@ export type SettingsRecord = {
 export type WordRecord = {
   id?: number;
   spell: string;
+  partOfSpeech: string;
   meaning: string;
+  confusingMeaning1: string;
+  confusingMeaning2: string;
+  confusingMeaning3: string;
   originalSentence: string;
   usageExplanation: string;
+  sentiment: string;
   deodorizedMeaning: string;
   year: string;
   sourceTextId: string;
@@ -24,9 +29,14 @@ export type WordRecord = {
 
 export type RecordDraft = {
   spell: string;
+  partOfSpeech: string;
   meaning: string;
+  confusingMeaning1: string;
+  confusingMeaning2: string;
+  confusingMeaning3: string;
   originalSentence: string;
   usageExplanation: string;
+  sentiment: string;
   deodorizedMeaning: string;
   year: string;
   sourceTextId: string;

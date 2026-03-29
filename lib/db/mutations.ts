@@ -18,9 +18,14 @@ export async function createWord(draft: RecordDraft) {
 
   return db.words.add({
     spell: normalizeSingleLineText(draft.spell),
+    partOfSpeech: normalizeSingleLineText(draft.partOfSpeech),
     meaning: normalizeSingleLineText(draft.meaning),
+    confusingMeaning1: normalizeSingleLineText(draft.confusingMeaning1),
+    confusingMeaning2: normalizeSingleLineText(draft.confusingMeaning2),
+    confusingMeaning3: normalizeSingleLineText(draft.confusingMeaning3),
     originalSentence: normalizeMultilineText(draft.originalSentence),
     usageExplanation: normalizeMultilineText(draft.usageExplanation),
+    sentiment: normalizeSingleLineText(draft.sentiment),
     deodorizedMeaning: normalizeMultilineText(draft.deodorizedMeaning),
     year: normalizeSingleLineText(draft.year),
     sourceTextId: normalizeSingleLineText(draft.sourceTextId),

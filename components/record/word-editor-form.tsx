@@ -55,12 +55,44 @@ export function WordEditorForm({ draft, error, isSaving, onFieldChange, onSave }
         onChange={(value) => onFieldChange("spell", value)}
       />
 
-      <EditorSection
-        label="Meaning"
-        value={draft.meaning}
-        placeholder="极简释义"
-        onChange={(value) => onFieldChange("meaning", value)}
-      />
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <EditorSection
+          label="Part of speech"
+          value={draft.partOfSpeech}
+          placeholder="如 n. / v. / adj."
+          onChange={(value) => onFieldChange("partOfSpeech", value)}
+        />
+
+        <EditorSection
+          label="Meaning"
+          value={draft.meaning}
+          placeholder="极简释义"
+          onChange={(value) => onFieldChange("meaning", value)}
+        />
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <EditorSection
+          label="Confusing 1"
+          value={draft.confusingMeaning1}
+          placeholder="易混淆含义 1"
+          onChange={(value) => onFieldChange("confusingMeaning1", value)}
+        />
+
+        <EditorSection
+          label="Confusing 2"
+          value={draft.confusingMeaning2}
+          placeholder="易混淆含义 2"
+          onChange={(value) => onFieldChange("confusingMeaning2", value)}
+        />
+
+        <EditorSection
+          label="Confusing 3"
+          value={draft.confusingMeaning3}
+          placeholder="易混淆含义 3"
+          onChange={(value) => onFieldChange("confusingMeaning3", value)}
+        />
+      </div>
 
       <EditorSection
         label="Original"
@@ -71,11 +103,18 @@ export function WordEditorForm({ draft, error, isSaving, onFieldChange, onSave }
       />
 
       <EditorSection
-        label="Usage"
+        label="Memory / Root"
         value={draft.usageExplanation}
-        placeholder="释义"
+        placeholder="记忆/词根"
         multiline
         onChange={(value) => onFieldChange("usageExplanation", value)}
+      />
+
+      <EditorSection
+        label="Sentiment"
+        value={draft.sentiment}
+        placeholder="[正+] / [负-] / [中性]"
+        onChange={(value) => onFieldChange("sentiment", value)}
       />
 
       <EditorSection

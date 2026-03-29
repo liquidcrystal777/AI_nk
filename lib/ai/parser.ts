@@ -8,20 +8,41 @@ function extractJsonString(input: string) {
 
 function assertWordDraftPayload(payload: Record<string, unknown>) {
   const spell = normalizeSingleLineText(payload.spell);
+  const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
   const meaning = normalizeSingleLineText(payload.meaning);
+  const confusingMeaning1 = normalizeSingleLineText(payload.confusingMeaning1);
+  const confusingMeaning2 = normalizeSingleLineText(payload.confusingMeaning2);
+  const confusingMeaning3 = normalizeSingleLineText(payload.confusingMeaning3);
   const originalSentence = normalizeMultilineText(payload.originalSentence);
   const usageExplanation = normalizeMultilineText(payload.usageExplanation);
+  const sentiment = normalizeSingleLineText(payload.sentiment);
   const deodorizedMeaning = normalizeMultilineText(payload.deodorizedMeaning);
 
-  if (!spell || !meaning || !originalSentence || !usageExplanation || !deodorizedMeaning) {
-    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、极简释义、原句、释义、去味。 ");
+  if (
+    !spell ||
+    !partOfSpeech ||
+    !meaning ||
+    !confusingMeaning1 ||
+    !confusingMeaning2 ||
+    !confusingMeaning3 ||
+    !originalSentence ||
+    !usageExplanation ||
+    !sentiment ||
+    !deodorizedMeaning
+  ) {
+    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、三个易混淆含义、原句、释义、态度、去味。");
   }
 
   return {
     spell,
+    partOfSpeech,
     meaning,
+    confusingMeaning1,
+    confusingMeaning2,
+    confusingMeaning3,
     originalSentence,
     usageExplanation,
+    sentiment,
     deodorizedMeaning,
   };
 }
