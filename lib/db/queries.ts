@@ -1,0 +1,65 @@
+import { liveQuery } from "dexie";
+import { db } from "@/lib/db/db";
+import { DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
+import type { BrowseFilters, SettingsRecord, WordRecord } from "@/types/db";
+
+export async function getSettings(): Promise<SettingsRecord> {
+  const settings = await db.settings.get(SETTINGS_ID);
+  return settings ?? DEFAULT_SETTINGS;
+}
+
+export function watchSettings() {
+  return liveQuery(() => getSettings());
+}
+
+export async function getWordCount() {
+  return db.words.count();
+}
+
+export async function getDueCount(now = Date.now()) {
+  return db.words.where("nextReviewTime").belowOrEqual(now).count();
+}
+
+export async function getBrowseWords(filters: BrowseFilters): Promise<WordRecord[]> {
+  let words = await db.words.orderBy("spell").toArray();
+
+  if (filters.year) {
+    words = words.filter((word) => word.year === filters.year);
+  }
+
+  if (filters.sourceTextId) {
+    words = words.filter((word) => word.sourceTextId === filters.sourceTextId);
+  }
+
+  if (filters.keyword) {
+    const keyword = filters.keyword.toLowerCase();
+    words = words.filter((word) => {
+      return [word.spell, word.meaning, word.pronunciation ?? "", ...word.originalSentence]
+        .join(" ")
+        .toLowerCase()
+        .includes(keyword);
+    });
+  }
+
+  return words;
+}
+
+export async function getBrowseFilterOptions() {
+  const words = await db.words.toArray();
+  const years = Array.from(new Set(words.map((word) => word.year).filter(Boolean))).sort();
+  const sourceTextIds = Array.from(
+    new Set(words.map((word) => word.sourceTextId).filter(Boolean)),
+  ).sort();
+
+  return { years, sourceTextIds };
+}
+
+export async function getNextReviewWords(now = Date.now(), limit = 20) {
+  const dueWords = await db.words.where("nextReviewTime").belowOrEqual(now).sortBy("nextReviewTime");
+  return dueWords.slice(0, limit);
+}
+
+export async function getNextReviewWord(now = Date.now()) {
+  const words = await getNextReviewWords(now, 1);
+  return words[0] ?? null;
+}
