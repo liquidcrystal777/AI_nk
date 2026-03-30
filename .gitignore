@@ -43,3 +43,7 @@ next-env.d.ts
 # Claude Code local state
 .claude/settings.local.json
 .claude/worktrees/
+
+# local reference assets
+homepage.png
+review logic.png
