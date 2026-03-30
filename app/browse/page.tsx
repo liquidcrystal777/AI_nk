@@ -14,7 +14,7 @@ export default function BrowsePage() {
 
   return (
     <AppShell>
-      <TopBar title="浏览词库" showBack />
+      <TopBar title="浏览词库" showBack backHref="/" />
       <main className="flex flex-1 flex-col gap-4 bg-[linear-gradient(180deg,#faf5ff_0%,#ffffff_42%)] px-4 py-4">
         <BrowseSearchBar filters={filters} years={years} sourceTextIds={sourceTextIds} onChange={setFilters} />
         {hasWords ? (

@@ -26,6 +26,7 @@ export default function RecordPage() {
       <TopBar
         title={step === "input" ? "录入新词" : "编辑卡片"}
         showBack
+        backHref="/"
         onConfirm={step === "edit" ? handleConfirm : undefined}
         confirmDisabled={isSaving}
       />

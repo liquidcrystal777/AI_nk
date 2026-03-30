@@ -31,7 +31,7 @@ export default function SettingsPage() {
 
   return (
     <AppShell>
-      <TopBar title="设置" showBack />
+      <TopBar title="设置" showBack backHref="/" />
       <main className="flex flex-1 flex-col gap-4 px-4 py-4">
         <SettingsForm settings={draft} onChange={updateField} onSave={handleSave} />
         {message ? <div className="rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">{message}</div> : null}

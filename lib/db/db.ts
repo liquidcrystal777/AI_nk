@@ -1,5 +1,6 @@
-import Dexie, { type EntityTable } from "dexie";
+import Dexie, { type EntityTable, type Transaction } from "dexie";
 import type { SettingsRecord, WordRecord } from "@/types/db";
+import { DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
 
 type LegacyWordRecord = {
   id?: number;
@@ -37,6 +38,15 @@ function normalizeLegacySingleLine(input: unknown) {
     .trim();
 }
 
+async function ensureSettingsRecord(transaction: Transaction) {
+  const settingsTable = transaction.table("settings");
+  const current = await settingsTable.get(SETTINGS_ID);
+
+  if (!current) {
+    await settingsTable.put(DEFAULT_SETTINGS);
+  }
+}
+
 export class VocabularyDatabase extends Dexie {
   settings!: EntityTable<SettingsRecord, "id">;
   words!: EntityTable<WordRecord, "id">;
@@ -57,6 +67,8 @@ export class VocabularyDatabase extends Dexie {
           "++id, spell, status, year, sourceTextId, nextReviewTime, [year+sourceTextId], [status+nextReviewTime]",
       })
       .upgrade(async (transaction) => {
+        await ensureSettingsRecord(transaction);
+
         await transaction
           .table("words")
           .toCollection()
@@ -85,6 +97,8 @@ export class VocabularyDatabase extends Dexie {
           "++id, spell, partOfSpeech, sentiment, status, year, sourceTextId, nextReviewTime, [year+sourceTextId], [status+nextReviewTime]",
       })
       .upgrade(async (transaction) => {
+        await ensureSettingsRecord(transaction);
+
         await transaction
           .table("words")
           .toCollection()
@@ -104,6 +118,16 @@ export class VocabularyDatabase extends Dexie {
             word.reviewCount = Number(word.reviewCount ?? 0);
             word.nextReviewTime = Number(word.nextReviewTime ?? Date.now());
           });
+      });
+
+    this.version(5)
+      .stores({
+        settings: "id",
+        words:
+          "++id, spell, partOfSpeech, sentiment, status, year, sourceTextId, nextReviewTime, [year+sourceTextId], [status+nextReviewTime]",
+      })
+      .upgrade(async (transaction) => {
+        await ensureSettingsRecord(transaction);
       });
   }
 }
