@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Circle, Plus, ArrowRight } from "lucide-react";
+import { Minus, Circle, Plus, ArrowRight, Diamond } from "lucide-react";
 import { SectionCard } from "@/components/common/section-card";
 import { APP_PURPLE } from "@/lib/utils/constants";
 import type { WordRecord } from "@/types/db";
@@ -92,6 +92,154 @@ export function ReviewCard({ word }: ReviewCardProps) {
         </section>
       </div>
     </SectionCard>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// 新复习流程：Screen(1) 判断正负态度 / Screen(2) 判断词意 / Card 展示
+// ────────────────────────────────────────────────────────────────────────────
+
+export function AttitudeScreen({
+  word,
+  onSelect,
+  onForget,
+}: {
+  word: WordRecord;
+  onSelect: (attitude: "+" | "O" | "-") => void;
+  onForget: () => void;
+}) {
+  return (
+    <div className="flex flex-1 flex-col">
+      {/* 顶部标题行 */}
+      <div className="flex items-center justify-between px-1 pb-4">
+        <span className="text-sm font-semibold text-neutral-500">判断正负态度</span>
+        <button
+          type="button"
+          onClick={onForget}
+          className="flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500"
+        >
+          <Diamond size={12} />
+          遗忘
+        </button>
+      </div>
+
+      {/* 中央单词 */}
+      <div className="flex flex-1 items-center justify-center">
+        <div className="text-center">
+          <div className="text-5xl font-black tracking-tight text-neutral-900">{word.spell}</div>
+          {word.partOfSpeech ? (
+            <div className="mt-3 text-base text-neutral-400">{word.partOfSpeech}</div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* 底部三按钮 */}
+      <div className="flex gap-4 pb-4">
+        {(
+          [
+            { value: "-" as const, icon: Minus, label: "负" },
+            { value: "O" as const, icon: Circle, label: "中性" },
+            { value: "+" as const, icon: Plus, label: "正" },
+          ] as const
+        ).map(({ value, icon: Icon, label }) => (
+          <button
+            key={value}
+            type="button"
+            onClick={() => onSelect(value)}
+            className="flex flex-1 flex-col items-center gap-2 rounded-3xl border border-neutral-200 bg-white py-5 text-sm font-medium text-neutral-700 shadow-sm"
+          >
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100">
+              <Icon size={20} />
+            </span>
+            <span>{label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function MeaningScreen({
+  word,
+  options,
+  onSelect,
+  onForget,
+}: {
+  word: WordRecord;
+  options: string[];
+  onSelect: (meaning: string) => void;
+  onForget: () => void;
+}) {
+  return (
+    <div className="flex flex-1 flex-col">
+      {/* 顶部标题行 */}
+      <div className="flex items-center justify-between px-1 pb-4">
+        <span className="text-sm font-semibold text-neutral-500">判断词意</span>
+        <button
+          type="button"
+          onClick={onForget}
+          className="flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500"
+        >
+          <Diamond size={12} />
+          遗忘
+        </button>
+      </div>
+
+      {/* 中央单词 */}
+      <div className="flex flex-1 items-center justify-center">
+        <div className="text-center">
+          <div className="text-5xl font-black tracking-tight text-neutral-900">{word.spell}</div>
+          {word.partOfSpeech ? (
+            <div className="mt-3 text-base text-neutral-400">{word.partOfSpeech}</div>
+          ) : null}
+        </div>
+      </div>
+
+      {/* 选项按钮 */}
+      <div className="flex flex-col gap-3 pb-4">
+        {options.map((option) => (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onSelect(option)}
+            className="w-full rounded-2xl border border-neutral-200 bg-white px-5 py-4 text-left text-sm font-medium text-neutral-800 shadow-sm"
+          >
+            {option}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export function CardResultScreen({
+  word,
+  onNext,
+}: {
+  word: WordRecord;
+  onNext: () => void;
+}) {
+  return (
+    <div className="flex flex-1 flex-col gap-4">
+      <ReviewCard word={word} />
+
+      {/* 测试结果 + 下一词 */}
+      <div className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-sm">
+        <div className="flex items-center gap-2 text-sm font-semibold">
+          <span className="text-neutral-500">测试结果：</span>
+          <span className="text-lg font-black text-red-500">✗</span>
+        </div>
+        <button
+          type="button"
+          onClick={onNext}
+          className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
+          style={{ backgroundColor: APP_PURPLE }}
+        >
+          下一词
+          <ArrowRight size={16} />
+        </button>
+      </div>
+    </div>
   );
 }
 

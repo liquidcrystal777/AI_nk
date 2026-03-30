@@ -14,26 +14,6 @@ function statusLabel(status: WordRecord["status"]) {
   return "掌握";
 }
 
-function ConfusingMeaningList({ word }: { word: WordRecord }) {
-  const meanings = [word.confusingMeaning1, word.confusingMeaning2, word.confusingMeaning3].filter(Boolean);
-
-  if (!meanings.length) {
-    return <span className="text-neutral-500">暂无易混淆含义</span>;
-  }
-
-  return (
-    <div className="mt-2 flex flex-wrap gap-2">
-      {meanings.map((item, index) => (
-        <span
-          key={`${item}-${index}`}
-          className="rounded-full border border-neutral-200 bg-neutral-50 px-3 py-1 text-xs font-medium text-neutral-700"
-        >
-          {item}
-        </span>
-      ))}
-    </div>
-  );
-}
 
 export function WordListItem({ word }: { word: WordRecord }) {
   const [expanded, setExpanded] = useState(false);
@@ -69,13 +49,6 @@ export function WordListItem({ word }: { word: WordRecord }) {
             <span>年份：{word.year}</span>
             <span>来源：{word.sourceTextId}</span>
             <span>下次复习：{formatRelativeTime(word.nextReviewTime)}</span>
-          </div>
-
-          <div>
-            <div className="inline-flex rounded-xl bg-[rgba(102,8,116,0.08)] px-3 py-1 text-xs font-bold" style={{ color: APP_PURPLE }}>
-              【易混淆含义】
-            </div>
-            <ConfusingMeaningList word={word} />
           </div>
 
           <div>
