@@ -1,0 +1,15 @@
+# Reduce Claude Code context/file scan cost for generated artifacts
+node_modules/
+.next/
+out/
+coverage/
+*.tsbuildinfo
+
+# Large local assets rarely needed for code edits
+public/exam-papers/
+
+# Android generated/build artifacts
+android/.gradle/
+android/build/
+android/app/build/
+android/capacitor-cordova-android-plugins/
