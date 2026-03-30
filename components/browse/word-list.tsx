@@ -40,7 +40,7 @@ function ActionButton({
       disabled={disabled}
       aria-label={ariaLabel}
       className={[
-        "flex h-11 w-11 items-center justify-center rounded-full border bg-white/92 shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-10 items-center justify-center rounded-full border bg-white/92 shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50",
         tone === "danger"
           ? "border-rose-200 text-rose-500 hover:bg-rose-50"
           : "border-neutral-200 text-neutral-600 hover:bg-neutral-50",
@@ -74,13 +74,13 @@ export function WordListItem({ word, isActive }: WordListItemProps) {
     <div
       className={[
         "transition duration-300 ease-out",
-        isActive ? "scale-100 opacity-100" : "scale-[0.96] opacity-70",
+        isActive ? "scale-100 opacity-100" : "scale-[0.97] opacity-75",
       ].join(" ")}
     >
       <WordCard
         word={word}
         compact={!expanded}
-        className="rounded-[2.2rem]"
+        className="rounded-[2rem]"
         headerActions={
           <>
             <ActionButton
@@ -200,10 +200,10 @@ export function WordList({ words }: { words: WordRecord[] }) {
   }, [activeIndex, activeWord, words.length]);
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between rounded-[1.6rem] border border-white/70 bg-white/80 px-4 py-3 shadow-sm backdrop-blur-sm">
+    <div className="space-y-4 px-4">
+      <div className="flex items-center justify-between rounded-[1.6rem] border border-white/70 bg-white/88 px-4 py-3 shadow-sm backdrop-blur-sm">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-400">Card Flow</div>
+          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-400">Card Flow</div>
           <div className="mt-1 text-sm font-medium text-neutral-600">左右滑动切换词卡</div>
         </div>
         <div className="rounded-full bg-[rgba(102,8,116,0.08)] px-3 py-1 text-sm font-bold" style={{ color: APP_PURPLE }}>
@@ -211,34 +211,34 @@ export function WordList({ words }: { words: WordRecord[] }) {
         </div>
       </div>
 
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div
+        ref={trackRef}
+        onScroll={handleScroll}
+        className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-[8%] pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      >
+        {words.map((word, index) => (
+          <div key={word.id} className="w-[100%] shrink-0 snap-center">
+            <WordListItem word={word} isActive={index === activeIndex} />
+          </div>
+        ))}
+      </div>
+
+      <div className="flex items-center justify-center gap-3">
         <button
           type="button"
           onClick={() => canGoPrev && scrollToIndex(activeIndex - 1)}
           disabled={!canGoPrev}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white/92 text-neutral-600 shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="上一张"
         >
           <ChevronLeft size={18} />
         </button>
 
-        <div
-          ref={trackRef}
-          onScroll={handleScroll}
-          className="flex flex-1 snap-x snap-mandatory gap-4 overflow-x-auto px-[4%] pb-4 pt-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-        >
-          {words.map((word, index) => (
-            <div key={word.id} className="w-[92%] shrink-0 snap-center md:w-[78%]">
-              <WordListItem word={word} isActive={index === activeIndex} />
-            </div>
-          ))}
-        </div>
-
         <button
           type="button"
           onClick={() => canGoNext && scrollToIndex(activeIndex + 1)}
           disabled={!canGoNext}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white/92 text-neutral-600 shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="下一张"
         >
           <ChevronRight size={18} />

@@ -186,63 +186,91 @@
 - 保持实现简单直接
 - 用户没明确要的功能，不主动扩展
 
-## 最新已完成改动（2026-03-30）
+## 最新已完成改动（2026-03-30，第二轮）
 
-### 1. AI system prompt 已升级
+### 1. browse 删除单词已支持即时刷新
 
-- `lib/ai/client.ts` 中的系统提示词已替换为“考研英语命题人兼词汇大师”版本
-- 仍保持严格 JSON 输出约束
-- 兼容当前两类调用方式：
-  - Anthropic `/messages` 使用 `system`
-  - OpenAI 兼容接口使用 `messages[0].role = system`
+- `lib/hooks/use-browse-words.ts` 已从手动 `useEffect + setState` 改为 `useLiveQuery(() => getBrowseWords(filters), [filters], [])`
+- 现在在 browse 页确认删除后，列表会直接响应 Dexie 数据变化
+- 不再需要返回 main page 再重新进入 `/browse`
 
-### 2. 复习流程已改为“统一先出卡，再点下一词推进”
+实现原则：
 
-当前 `review` 已落地为三阶段：
+- 没有新造第二套 browse 数据源
+- 继续复用 `getBrowseWords(filters)`
+- 删除动作仍走 `deleteWord(id)`
 
-- `attitude`：判断正负态度
-- `meaning`：判断词意
-- `card`：展示该词完整卡片与本次结果
+### 2. 共享 `WordCard` 已按 `wordcard.png` 方向重构
 
-已实现规则：
+用户在这一轮明确要求：
 
-- 态度判断错误：进入单词卡页
-- 点击“遗忘”：进入单词卡页
-- 点击“跳过”：进入单词卡页
-- 词意判断正确：也进入单词卡页
-- 只有在单词卡页点击“下一词”时，才会真正切换到下一词
+- **不能拆 browse / review 两套卡片正文实现**
+- 共享 `WordCard` 必须继续作为唯一主体
+- 布局要更接近根目录 `wordcard.png`
 
-关键文件：
+当前 `components/common/word-card.tsx` 已调整为：
 
-- `app/review/page.tsx`
-- `components/review/review-sections.tsx`
-- `lib/hooks/use-review-stage.ts`
-
-补充说明：
-
-- `skip` 目前只作为本轮展示结果，不写入数据库
-- 这是符合当前 `applyReviewAction()` 语义的最小实现
-
-### 3. browse 页顶部筛选区已压缩
-
-- `components/browse/browse-search-bar.tsx` 已改成更紧凑的轻量工具条
-- 保留原有三类筛选能力：
-  - keyword
-  - year
-  - sourceTextId
-- 没有新增折叠/展开等复杂交互
-
-### 5. 设置页本地保存已修复
-
-- 问题根因不是按钮事件，而是部分历史 IndexedDB 本地库会出现 `settings` store / 默认记录缺失
-- 已在 `lib/db/db.ts` 中补上迁移兜底，确保升级后本地库至少包含：
-  - `settings`
-  - `words`
-- 已验证：
-  - 点击“保存设置”会出现“已保存到本地数据库”
-  - 刷新 `/settings` 后值仍保留
+- 外层主标题突出：`spell + partOfSpeech`
+- 第一重点块：`[极简释义]`
+- 第二重点块：`[考点 / 逻辑]`
+- `sentiment` 不再和正文主块并列，而是独立 badge
 
 额外说明：
 
-- 本地开发调试请优先使用 `http://localhost:3000`
-- Next.js 16 dev 模式下，直接使用 `127.0.0.1` 可能触发 `allowedDevOrigins` 限制并产生 HMR WebSocket 报错，这不是设置保存失败的根因
+- `compact` 模式下也保留同一信息层级，只是收缩为核心内容
+- `compact` 时仍显示 `[考点 / 逻辑]` 中最核心的“去味”信息，避免 browse/review 卡片语义断层
+
+### 3. browse 页卡片容器已重新收敛
+
+- `components/browse/word-list.tsx` 中：
+  - 左右切换按钮已从卡片两侧移到底部
+  - 横向 track 改为优先保证卡片完整展示
+  - `activeIndex` 越界时会自动回收，避免删除最后一张卡片后索引错位
+- browse 页现在的目标是：
+  - 首尾卡片完整显示
+  - 按钮不挤压正文主区域
+  - 删除确认 / 展开详情时仍能完整阅读内容
+
+### 4. 非首页页面 UI 骨架已统一一轮
+
+当前已统一以下页面的基础风格：
+
+- `/browse`
+- `/settings`
+- `/review`
+
+已统一的核心基座：
+
+- `components/layout/app-shell.tsx`
+- `components/layout/top-bar.tsx`
+
+本轮统一重点：
+
+- 顶部栏高度、边框、圆角、毛玻璃感统一
+- 非首页页面背景渐变统一
+- settings / browse / review 的内容留白与卡片层级更接近同一套设计语言
+
+### 5. review 阶段页已同步新的非首页视觉语言
+
+- `components/review/review-sections.tsx` 中：
+  - `AttitudeScreen`
+  - `MeaningScreen`
+- 已从“裸内容堆叠”调整为：
+  - 顶部信息条
+  - 中部主展示容器
+  - 底部动作按钮区
+
+这样 review 与 browse/settings 在视觉骨架上更统一，但仍保留各自任务型页面的交互差异。
+
+### 6. 验证结论
+
+已执行：
+
+- `npm run build`：通过
+- `npm run lint`：未通过，但失败点仍主要来自 `android/app/src/main/assets/public/_next/static/**` 下的构建产物，不是这一轮业务修改直接引入的问题
+
+因此这轮改动当前可以认为：
+
+- 业务代码可构建
+- 主要闭环已打通
+- 若后续要清理 lint，需要优先处理 Android 静态产物的 ESLint 扫描范围

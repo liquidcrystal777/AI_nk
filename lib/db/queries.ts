@@ -1,11 +1,22 @@
 import { liveQuery } from "dexie";
 import { db } from "@/lib/db/db";
-import { DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
+import { DEFAULT_AI_MODEL_NAME, DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
 import type { BrowseFilters, SettingsRecord, WordRecord } from "@/types/db";
+
+function resolveSettings(settings?: Partial<SettingsRecord>): SettingsRecord {
+  return {
+    ...DEFAULT_SETTINGS,
+    ...settings,
+    id: SETTINGS_ID,
+    aiApiKey: settings?.aiApiKey?.trim() ?? DEFAULT_SETTINGS.aiApiKey,
+    aiBaseUrl: settings?.aiBaseUrl?.trim() ?? DEFAULT_SETTINGS.aiBaseUrl,
+    aiModelName: settings?.aiModelName?.trim() || DEFAULT_AI_MODEL_NAME,
+  };
+}
 
 export async function getSettings(): Promise<SettingsRecord> {
   const settings = await db.settings.get(SETTINGS_ID);
-  return settings ?? DEFAULT_SETTINGS;
+  return resolveSettings(settings);
 }
 
 export function watchSettings() {

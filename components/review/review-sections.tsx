@@ -82,20 +82,20 @@ export function AttitudeScreen({
   onSkip: () => void;
 }) {
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="flex items-center justify-between px-1 pb-4">
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between rounded-[1.6rem] border border-white/70 bg-white/88 px-4 py-3 shadow-sm backdrop-blur-sm">
         <span className="text-sm font-semibold text-neutral-500">判断正负态度</span>
         <ReviewAuxActions onForget={onForget} onSkip={onSkip} />
       </div>
 
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-center">
+      <div className="flex flex-1 items-center justify-center rounded-[2rem] border border-white/70 bg-white/82 px-6 py-10 text-center shadow-sm backdrop-blur-sm">
+        <div>
           <div className="text-5xl font-black tracking-tight text-neutral-900">{word.spell}</div>
           {word.partOfSpeech ? <div className="mt-3 text-base text-neutral-400">{word.partOfSpeech}</div> : null}
         </div>
       </div>
 
-      <div className="flex gap-4 pb-4">
+      <div className="grid grid-cols-3 gap-3 pb-4">
         {(
           [
             { value: "-" as const, icon: Minus, label: "负" },
@@ -107,7 +107,7 @@ export function AttitudeScreen({
             key={value}
             type="button"
             onClick={() => onSelect(value)}
-            className="flex flex-1 flex-col items-center gap-2 rounded-3xl border border-neutral-200 bg-white py-5 text-sm font-medium text-neutral-700 shadow-sm"
+            className="flex flex-col items-center gap-2 rounded-[1.7rem] border border-neutral-200/80 bg-white/92 py-5 text-sm font-medium text-neutral-700 shadow-sm"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100">
               <Icon size={20} />
@@ -134,14 +134,14 @@ export function MeaningScreen({
   onSkip: () => void;
 }) {
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="flex items-center justify-between px-1 pb-4">
+    <div className="flex flex-1 flex-col gap-4">
+      <div className="flex items-center justify-between rounded-[1.6rem] border border-white/70 bg-white/88 px-4 py-3 shadow-sm backdrop-blur-sm">
         <span className="text-sm font-semibold text-neutral-500">判断词意</span>
         <ReviewAuxActions onForget={onForget} onSkip={onSkip} />
       </div>
 
-      <div className="flex flex-1 items-center justify-center">
-        <div className="text-center">
+      <div className="flex flex-1 items-center justify-center rounded-[2rem] border border-white/70 bg-white/82 px-6 py-10 text-center shadow-sm backdrop-blur-sm">
+        <div>
           <div className="text-5xl font-black tracking-tight text-neutral-900">{word.spell}</div>
           {word.partOfSpeech ? <div className="mt-3 text-base text-neutral-400">{word.partOfSpeech}</div> : null}
         </div>
@@ -153,7 +153,7 @@ export function MeaningScreen({
             key={option}
             type="button"
             onClick={() => onSelect(option)}
-            className="w-full rounded-2xl border border-neutral-200 bg-white px-5 py-4 text-left text-sm font-medium text-neutral-800 shadow-sm"
+            className="w-full rounded-[1.6rem] border border-neutral-200/80 bg-white/92 px-5 py-4 text-left text-sm font-medium text-neutral-800 shadow-sm"
           >
             {option}
           </button>

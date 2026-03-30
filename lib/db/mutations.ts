@@ -1,14 +1,24 @@
 import { db } from "@/lib/db/db";
 import { getNextReviewTime, getNextStatus } from "@/lib/review/state-machine";
-import { DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
+import { DEFAULT_AI_MODEL_NAME, DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
 import { normalizeMultilineText, normalizeSingleLineText } from "@/lib/utils/text";
 import type { RecordDraft, SettingsRecord, WordRecord } from "@/types/db";
 import type { ReviewAction } from "@/types/review";
 
+function normalizeSettingsInput(input: Omit<SettingsRecord, "id">): Omit<SettingsRecord, "id"> {
+  return {
+    aiApiKey: input.aiApiKey.trim(),
+    aiBaseUrl: input.aiBaseUrl.trim(),
+    aiModelName: input.aiModelName.trim() || DEFAULT_AI_MODEL_NAME,
+  };
+}
+
 export async function saveSettings(input: Omit<SettingsRecord, "id">) {
+  const current = await db.settings.get(SETTINGS_ID);
+
   return db.settings.put({
-    ...DEFAULT_SETTINGS,
-    ...input,
+    ...(current ?? DEFAULT_SETTINGS),
+    ...normalizeSettingsInput(input),
     id: SETTINGS_ID,
   });
 }

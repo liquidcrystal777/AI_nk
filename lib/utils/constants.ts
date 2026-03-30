@@ -1,6 +1,8 @@
 export const SETTINGS_ID = 1 as const;
 export const APP_NAME = "考研英语神器";
 export const APP_PURPLE = "#660874";
+export const DEFAULT_AI_BASE_URL = "https://api.deepseek.com/v1";
+export const DEFAULT_AI_MODEL_NAME = "deepseek-chat";
 
 export const REVIEW_DELAYS = {
   fail: 5 * 60 * 1000,
@@ -14,5 +16,5 @@ export const DEFAULT_SETTINGS = {
   id: SETTINGS_ID,
   aiApiKey: "",
   aiBaseUrl: "",
-  aiModelName: "claude-3-5-sonnet-20241022",
+  aiModelName: DEFAULT_AI_MODEL_NAME,
 };

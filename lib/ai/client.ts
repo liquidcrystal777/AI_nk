@@ -1,4 +1,5 @@
 import type { AiWordDraftPayload } from "@/types/ai";
+import { DEFAULT_AI_BASE_URL, DEFAULT_AI_MODEL_NAME } from "@/lib/utils/constants";
 
 const ANALYZER_SYSTEM_PROMPT = [
   "你现在是顶尖的【考研英语命题人兼词汇大师】。你不仅要给出翻译，更要拆解考研命题逻辑。",
@@ -56,6 +57,13 @@ export function buildWordGenerationPrompt(params: {
     params.sourceText,
     "正文结束",
   ].join("\n");
+}
+
+function resolveAiConfig(baseUrl: string, modelName: string) {
+  return {
+    baseUrl: baseUrl.trim() || DEFAULT_AI_BASE_URL,
+    modelName: modelName.trim() || DEFAULT_AI_MODEL_NAME,
+  };
 }
 
 function normalizeBaseUrl(baseUrl: string, modelName: string) {
@@ -157,11 +165,13 @@ export async function generateWordDraft(params: {
   sourceTextId: string;
   sourceText: string;
 }): Promise<AiWordDraftPayload> {
-  const endpoint = normalizeBaseUrl(params.baseUrl, params.modelName);
+  const resolved = resolveAiConfig(params.baseUrl, params.modelName);
+  const endpoint = normalizeBaseUrl(resolved.baseUrl, resolved.modelName);
   const response = await fetch(
     endpoint,
     buildRequestInit({
       ...params,
+      modelName: resolved.modelName,
       endpoint,
     }),
   );

@@ -41,8 +41,8 @@ export function useRecordDraft(settings = DEFAULT_SETTINGS) {
       return;
     }
 
-    if (!settings.aiApiKey || !settings.aiBaseUrl || !settings.aiModelName) {
-      setError("请先在设置页填写 AI 接口信息");
+    if (!settings.aiApiKey || !settings.aiModelName) {
+      setError("请先在设置页填写 AI API Key；Base URL 可留空使用默认 DeepSeek");
       return;
     }
 
