@@ -1,34 +1,57 @@
 "use client";
 
 import Link from "next/link";
+import { BookOpen, PenSquare, Sparkles } from "lucide-react";
 import { useHomeStats } from "@/lib/hooks/use-home-stats";
-import { SectionCard } from "@/components/common/section-card";
-import { PrimaryButton } from "@/components/common/primary-button";
+
+type HomeEntryCardProps = {
+  href: string;
+  label: string;
+  description: string;
+  icon: typeof BookOpen;
+  className?: string;
+};
+
+function HomeEntryCard({ href, label, description, icon: Icon, className = "" }: HomeEntryCardProps) {
+  return (
+    <Link
+      href={href}
+      className={`group flex min-h-[7.25rem] flex-col justify-between rounded-[1.75rem] border border-white/45 bg-white/78 p-4 shadow-[0_16px_36px_rgba(76,29,149,0.12)] backdrop-blur-md transition hover:-translate-y-0.5 hover:bg-white/88 ${className}`}
+    >
+      <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[rgba(102,8,116,0.1)] text-[rgb(102,8,116)]">
+        <Icon size={20} />
+      </span>
+      <div>
+        <div className="text-lg font-black tracking-tight text-neutral-900">{label}</div>
+        <div className="mt-1 text-sm leading-6 text-neutral-500">{description}</div>
+      </div>
+    </Link>
+  );
+}
 
 export function HomeStatCard() {
   const { totalWords, dueCount } = useHomeStats();
 
   return (
-    <SectionCard className="py-8 text-center">
-      <div className="text-sm font-medium tracking-[0.2em] text-neutral-500 uppercase">词库总量</div>
-      <div className="mt-4 text-6xl font-black tracking-tight text-neutral-900">{totalWords}</div>
-      <div className="mt-4 text-sm text-neutral-600">当前待复习 {dueCount} 个</div>
-    </SectionCard>
+    <section className="rounded-[1.75rem] border border-white/50 bg-white/72 px-5 py-8 text-center shadow-[0_18px_40px_rgba(76,29,149,0.1)] backdrop-blur-md">
+      <div className="text-xs font-semibold tracking-[0.32em] text-neutral-500 uppercase">词库总量</div>
+      <div className="mt-4 text-7xl font-black tracking-[-0.04em] text-neutral-950">{totalWords}</div>
+      <div className="mt-3 inline-flex rounded-full border border-white/70 bg-white/78 px-4 py-2 text-sm font-medium text-neutral-600 shadow-sm">
+        当前待复习 {dueCount} 个
+      </div>
+    </section>
   );
 }
 
 export function HomeNavButtons() {
   return (
-    <div className="space-y-3">
-      <Link href="/browse" className="block">
-        <PrimaryButton type="button">浏览词库</PrimaryButton>
-      </Link>
-      <Link href="/record" className="block">
-        <PrimaryButton type="button">录入新词</PrimaryButton>
-      </Link>
-      <Link href="/review" className="block">
-        <PrimaryButton type="button">开始复习</PrimaryButton>
-      </Link>
+    <div className="mt-4 space-y-3">
+      <HomeEntryCard href="/browse" label="浏览词库" description="按年份、文章和关键词快速检索" icon={BookOpen} />
+
+      <div className="grid grid-cols-2 gap-3">
+        <HomeEntryCard href="/record" label="录入新词" description="从阅读原文生成新词卡" icon={PenSquare} />
+        <HomeEntryCard href="/review" label="开始复习" description="按阶段完成一轮单词复习" icon={Sparkles} />
+      </div>
     </div>
   );
 }
