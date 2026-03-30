@@ -24,7 +24,7 @@ export default function ReviewPage() {
   return (
     <AppShell>
       <TopBar title="开始复习" showBack backHref="/" />
-      <main className="flex flex-1 flex-col bg-[linear-gradient(180deg,#fbf8ff_0%,#ffffff_42%)] px-4 py-4">
+      <main className="flex flex-1 flex-col bg-[linear-gradient(180deg,#f7f1fb_0%,#fcf8ff_24%,#ffffff_58%)] px-4 py-3">
         {loading ? (
           <LoadingCard text="正在加载待复习单词..." />
         ) : currentWord ? (

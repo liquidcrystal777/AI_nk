@@ -3,11 +3,18 @@
 import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
 import { applyReviewAction } from "@/lib/db/mutations";
 import { getNextReviewWords } from "@/lib/db/queries";
+import { normalizeCompactChineseList, normalizeSingleLineText } from "@/lib/utils/text";
 import type { WordRecord } from "@/types/db";
 import type { ReviewAction } from "@/types/review";
 
 export type ReviewStage = "attitude" | "meaning" | "card";
 export type ReviewOutcome = ReviewAction | null;
+export type MeaningOption = {
+  id: string;
+  text: string;
+  partOfSpeech: string;
+  isCorrect: boolean;
+};
 
 function matchesSentiment(sentiment: string, selected: "+" | "O" | "-"): boolean {
   if (selected === "+") return sentiment.includes("正");
@@ -15,13 +22,28 @@ function matchesSentiment(sentiment: string, selected: "+" | "O" | "-"): boolean
   return sentiment.includes("中");
 }
 
-function buildMeaningOptions(word: WordRecord): string[] {
+function normalizeMeaningOptionText(input: string) {
+  const normalized = normalizeSingleLineText(input)
+    .replace(/[（(][^（）()]*[）)]/g, "")
+    .replace(/[：:]/g, "，")
+    .replace(/[。；;]/g, "，");
+
+  return normalizeCompactChineseList(normalized, 2) || normalizeSingleLineText(input);
+}
+
+function buildMeaningOptions(word: WordRecord): MeaningOption[] {
   const candidates = [
-    word.meaning,
-    word.confusingMeaning1,
-    word.confusingMeaning2,
-    word.confusingMeaning3,
-  ].filter(Boolean);
+    { id: "correct", text: word.meaning, isCorrect: true },
+    { id: "confusing-1", text: word.confusingMeaning1, isCorrect: false },
+    { id: "confusing-2", text: word.confusingMeaning2, isCorrect: false },
+    { id: "confusing-3", text: word.confusingMeaning3, isCorrect: false },
+  ]
+    .filter((candidate) => normalizeSingleLineText(candidate.text))
+    .map((candidate) => ({
+      ...candidate,
+      text: normalizeMeaningOptionText(candidate.text),
+      partOfSpeech: normalizeSingleLineText(word.partOfSpeech) || "词义",
+    }));
 
   for (let i = candidates.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -92,9 +114,9 @@ export function useReviewStage() {
   }, [currentWord, revealCard]);
 
   const handleMeaning = useCallback(
-    async (selected: string) => {
+    async (selected: MeaningOption) => {
       if (!currentWord) return;
-      if (selected === currentWord.meaning) {
+      if (selected.isCorrect) {
         await applyReviewAction(currentWord.id!, "success");
         revealCard("success");
         return;

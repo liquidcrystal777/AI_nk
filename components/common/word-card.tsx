@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { SectionCard } from "@/components/common/section-card";
-import { formatSourceTextLabel, formatWordSpell } from "@/lib/utils/text";
+import { formatDisplayYear, formatSourceTextLabel, formatWordSpell } from "@/lib/utils/text";
 import type { WordRecord } from "@/types/db";
 
 type WordCardProps = {
@@ -16,7 +16,7 @@ function buildSourceLabel(word: WordRecord) {
     return "";
   }
 
-  return [word.year, formatSourceTextLabel(word.sourceTextId)].filter(Boolean).join(" · ");
+  return [formatDisplayYear(word.year), formatSourceTextLabel(word.sourceTextId)].filter(Boolean).join(" · ");
 }
 
 function normalizeSentiment(sentiment: string) {
@@ -26,7 +26,7 @@ function normalizeSentiment(sentiment: string) {
 }
 
 function FocusLabel({ children }: { children: ReactNode }) {
-  return <div className="font-bold text-gray-900">【{children}】</div>;
+  return <div className="text-lg font-black tracking-[0.02em] text-gray-950">【{children}】</div>;
 }
 
 export function WordCard({ word, className = "", headerActions, footer }: WordCardProps) {
@@ -35,9 +35,12 @@ export function WordCard({ word, className = "", headerActions, footer }: WordCa
   const displaySpell = formatWordSpell(word.spell);
 
   return (
-    <SectionCard className={["overflow-hidden rounded-md border border-neutral-200 bg-white p-0 shadow-md", className].join(" ")}>
-      <div className="overflow-hidden rounded-md bg-white">
-        <div className="border-b border-[#660874] bg-[#660874] px-5 py-4 text-white sm:px-6">
+    <SectionCard className={[
+      "overflow-hidden rounded-[1.1rem] border border-neutral-200 bg-white p-0 shadow-md",
+      className,
+    ].join(" ")}>
+      <div className="overflow-hidden rounded-[1.1rem] bg-white">
+        <div className="border-b border-[#660874] bg-[linear-gradient(135deg,#5f0b71_0%,#7d2e8e_100%)] px-5 py-4 text-white sm:px-6">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-end justify-between gap-3">
@@ -54,34 +57,36 @@ export function WordCard({ word, className = "", headerActions, footer }: WordCa
           </div>
         </div>
 
-        <div className="space-y-4 px-5 py-5 leading-relaxed sm:px-6 sm:py-6">
-          <div className="space-y-4 text-base text-neutral-800">
-            <div className="space-y-2">
-              <FocusLabel>极简释义</FocusLabel>
-              <p className="text-lg font-semibold text-neutral-900">{word.meaning || "暂无释义"}</p>
-            </div>
-
-            <div className="space-y-4">
-              <FocusLabel>考点/逻辑</FocusLabel>
-
-              <div>
-                <span className="font-bold text-gray-900">1. 原文</span>
-                <p className="mt-1 font-serif italic text-gray-800">{word.originalSentence || "暂无原文"}</p>
+        <div className="grid min-h-[26rem] grid-rows-[1fr_auto]">
+          <div className="space-y-5 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+            <div className="space-y-5 text-base text-neutral-800">
+              <div className="space-y-2.5">
+                <FocusLabel>极简释义</FocusLabel>
+                <p className="text-[1.15rem] font-semibold leading-8 text-neutral-950">{word.meaning || "暂无释义"}</p>
               </div>
 
-              <div>
-                <span className="font-bold text-gray-900">2. 记忆/词根</span>
-                <p className="mt-1 text-neutral-800">{word.usageExplanation || "暂无记忆/词根"}</p>
-              </div>
+              <div className="space-y-4">
+                <FocusLabel>考点/逻辑</FocusLabel>
 
-              <div>
-                <span className="font-bold text-gray-900">3. 去味</span>
-                <p className="mt-1 text-neutral-800">{word.deodorizedMeaning || "暂无去味"}</p>
+                <div>
+                  <span className="font-bold text-gray-900">1. 原文</span>
+                  <p className="mt-1.5 font-serif text-[1.02rem] leading-8 italic text-gray-800">{word.originalSentence || "暂无原文"}</p>
+                </div>
+
+                <div>
+                  <span className="font-bold text-gray-900">2. 记忆/词根</span>
+                  <p className="mt-1.5 text-[1.02rem] leading-8 text-neutral-800">{word.usageExplanation || "暂无记忆/词根"}</p>
+                </div>
+
+                <div>
+                  <span className="font-bold text-gray-900">3. 去味</span>
+                  <p className="mt-1.5 text-[1.02rem] leading-8 text-neutral-800">{word.deodorizedMeaning || "暂无去味"}</p>
+                </div>
               </div>
             </div>
           </div>
 
-          {footer ? <div>{footer}</div> : null}
+          {footer ? <div className="border-t border-neutral-100 px-5 py-4 sm:px-6">{footer}</div> : null}
         </div>
       </div>
     </SectionCard>

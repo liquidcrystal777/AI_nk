@@ -59,6 +59,15 @@ export function normalizeCompactChineseList(input: unknown, limit = 2) {
   return (parts.length ? parts : [normalized]).slice(0, limit).join("，");
 }
 
+export function formatDisplayYear(input: unknown) {
+  const normalized = normalizeSingleLineText(input);
+  if (!normalized) {
+    return "";
+  }
+
+  return /^\d{4}$/.test(normalized) ? `${normalized}年` : normalized;
+}
+
 export function formatSourceTextLabel(input: unknown) {
   return normalizeSingleLineText(input).replace(/^Text/i, "TEXT");
 }

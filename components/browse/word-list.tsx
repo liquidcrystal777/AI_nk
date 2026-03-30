@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Trash2 } from "lucide-react";
 import { WordCard } from "@/components/common/word-card";
 import { deleteWord } from "@/lib/db/mutations";
 import { APP_PURPLE } from "@/lib/utils/constants";
-import { formatSourceTextLabel, formatWordSpell } from "@/lib/utils/text";
+import { formatDisplayYear, formatSourceTextLabel, formatWordSpell } from "@/lib/utils/text";
 import { formatRelativeTime } from "@/lib/utils/time";
 import type { WordRecord } from "@/types/db";
 
@@ -80,7 +80,7 @@ export function WordListItem({ word, isActive }: WordListItemProps) {
       <WordCard
         word={word}
         compact
-        className="rounded-md"
+        className="rounded-[1.1rem]"
         headerActions={
           <ActionButton
             onClick={() => setConfirmingDelete((prev) => !prev)}
@@ -95,7 +95,7 @@ export function WordListItem({ word, isActive }: WordListItemProps) {
           <div className="space-y-4">
             <div className="flex flex-wrap gap-2 text-xs text-neutral-500">
               <span className="rounded-md bg-neutral-100 px-3 py-1">状态：{statusLabel(word.status)}</span>
-              <span className="rounded-md bg-neutral-100 px-3 py-1">年份：{word.year || "-"}</span>
+              <span className="rounded-md bg-neutral-100 px-3 py-1">年份：{formatDisplayYear(word.year) || "-"}</span>
               <span className="rounded-md bg-neutral-100 px-3 py-1">来源：{formatSourceTextLabel(word.sourceTextId) || "-"}</span>
             </div>
 
@@ -190,45 +190,39 @@ export function WordList({ words }: { words: WordRecord[] }) {
   }, [activeWord, boundedActiveIndex, words.length]);
 
   return (
-    <div className="space-y-4 px-4">
-      <div className="flex items-center justify-between rounded-md border border-neutral-200 bg-white px-4 py-3 shadow-sm">
-        <div>
-          <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-neutral-400">Card Flow</div>
-          <div className="mt-1 text-sm font-medium text-neutral-600">左右滑动切换词卡</div>
-        </div>
-        <div className="rounded-md bg-[rgba(102,8,116,0.08)] px-3 py-1 text-sm font-bold" style={{ color: APP_PURPLE }}>
-          {progressLabel}
-        </div>
-      </div>
-
+    <div className="space-y-3 px-4">
       <div
         ref={trackRef}
         onScroll={handleScroll}
-        className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-[8%] pb-2 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory gap-4 overflow-x-auto px-[6%] pb-1 pt-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {words.map((word, index) => (
-          <div key={word.id} className="w-[100%] shrink-0 snap-center">
+          <div key={word.id} className="w-full shrink-0 snap-center">
             <WordListItem word={word} isActive={index === boundedActiveIndex} />
           </div>
         ))}
       </div>
 
-      <div className="flex items-center justify-center gap-3">
+      <div className="flex items-center justify-center gap-3 pt-1">
         <button
           type="button"
           onClick={() => canGoPrev && scrollToIndex(boundedActiveIndex - 1)}
           disabled={!canGoPrev}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="上一张"
         >
           <ChevronLeft size={18} />
         </button>
 
+        <div className="min-w-[84px] rounded-full bg-[rgba(102,8,116,0.08)] px-4 py-1.5 text-center text-sm font-bold" style={{ color: APP_PURPLE }}>
+          {progressLabel}
+        </div>
+
         <button
           type="button"
           onClick={() => canGoNext && scrollToIndex(boundedActiveIndex + 1)}
           disabled={!canGoNext}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md border border-neutral-200 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-600 shadow-sm transition hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-40"
           aria-label="下一张"
         >
           <ChevronRight size={18} />
