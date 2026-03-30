@@ -14,11 +14,9 @@ export default function HomePage() {
         <div className="relative z-10 flex flex-1 flex-col">
           <TopBar title="考研英语神器" />
           <main className="flex flex-1 flex-col justify-center px-4 py-6">
-            <section className="rounded-[2rem] border border-white/30 bg-white/16 p-3 shadow-[0_24px_80px_rgba(76,29,149,0.28)] backdrop-blur-2xl">
-              <div className="rounded-[1.6rem] border border-white/35 bg-white/72 px-4 py-5 backdrop-blur-xl">
-                <HomeStatCard />
-                <HomeNavButtons />
-              </div>
+            <section className="rounded-[2rem] border border-white/30 bg-white/16 p-4 shadow-[0_24px_80px_rgba(76,29,149,0.28)] backdrop-blur-2xl">
+              <HomeStatCard />
+              <HomeNavButtons />
             </section>
           </main>
         </div>

@@ -39,6 +39,14 @@ export async function updateWord(id: number, patch: Partial<WordRecord>) {
   return db.words.update(id, patch);
 }
 
+export async function deleteWord(id: number) {
+  return db.words.delete(id);
+}
+
+export async function clearAllWords() {
+  return db.words.clear();
+}
+
 export async function applyReviewAction(id: number, action: ReviewAction, now = Date.now()) {
   if (action === "skip") {
     return;

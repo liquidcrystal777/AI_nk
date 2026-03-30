@@ -12,8 +12,8 @@ type BrowseSearchBarProps = {
 
 export function BrowseSearchBar({ filters, years, sourceTextIds, onChange }: BrowseSearchBarProps) {
   return (
-    <div className="space-y-2 rounded-[1.75rem] border border-neutral-200/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm">
-      <label className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50/70 px-3 py-2.5">
+    <div className="space-y-2 rounded-[1.85rem] border border-white/70 bg-white/78 p-3 shadow-[0_14px_32px_rgba(102,8,116,0.08)] backdrop-blur-md">
+      <label className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50/80 px-3 py-2.5">
         <Search size={16} className="text-neutral-400" />
         <input
           value={filters.keyword}
