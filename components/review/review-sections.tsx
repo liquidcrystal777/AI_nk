@@ -77,12 +77,10 @@ function ReviewStagePanel({ title, children, actions }: { title: string; childre
 
 function ReviewSpellHero({ word }: { word: WordRecord }) {
   return (
-    <div className="flex flex-1 items-center justify-center rounded-[2rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(247,239,251,0.94)_100%)] px-6 py-9 text-center shadow-sm backdrop-blur-sm">
+    <div className="flex flex-1 items-center justify-center rounded-[2rem] border border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(247,239,251,0.92)_100%)] px-6 py-10 text-center shadow-[0_16px_36px_rgba(102,8,116,0.07)] backdrop-blur-sm">
       <div>
-        <div className="bg-[linear-gradient(180deg,#2d1634_0%,#660874_100%)] bg-clip-text text-5xl font-black tracking-tight text-transparent">
-          {word.spell}
-        </div>
-        {word.partOfSpeech ? <div className="mt-3 text-base font-medium text-neutral-400">{word.partOfSpeech}</div> : null}
+        <div className="text-5xl font-black tracking-[-0.03em] text-[#2d1634] sm:text-6xl">{word.spell}</div>
+        {word.partOfSpeech ? <div className="mt-3 text-sm font-medium tracking-[0.08em] text-neutral-400">{word.partOfSpeech}</div> : null}
       </div>
     </div>
   );

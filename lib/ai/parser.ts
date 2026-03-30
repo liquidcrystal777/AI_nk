@@ -1,6 +1,7 @@
 import {
   formatWordSpell,
   normalizeCompactChineseList,
+  normalizeMultilineTextWithLimit,
   normalizeSingleLineText,
   takeFirstLine,
 } from "@/lib/utils/text";
@@ -21,7 +22,7 @@ function assertWordDraftPayload(payload: Record<string, unknown>) {
   const originalSentence = takeFirstLine(payload.originalSentence);
   const usageExplanation = takeFirstLine(payload.usageExplanation);
   const sentiment = normalizeSingleLineText(payload.sentiment);
-  const deodorizedMeaning = takeFirstLine(payload.deodorizedMeaning);
+  const deodorizedMeaning = normalizeMultilineTextWithLimit(payload.deodorizedMeaning, 2);
 
   if (
     !spell ||

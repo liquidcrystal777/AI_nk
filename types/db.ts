@@ -47,3 +47,20 @@ export type BrowseFilters = {
   year: string;
   sourceTextId: string;
 };
+
+export type BackupPayload = {
+  settings: SettingsRecord | null;
+  words: WordRecord[];
+};
+
+export type BackupFile = {
+  format: "vocabulary-backup";
+  formatVersion: 1;
+  exportedAt: string;
+  app: {
+    name: string;
+  };
+  payload: BackupPayload;
+};
+
+export type ImportMode = "replace" | "append";

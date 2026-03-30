@@ -7,6 +7,8 @@ function normalizeExamText(input: string) {
     .trim();
 }
 
+const SUPPORTED_EXAM_PAPER_YEARS = Array.from({ length: 26 }, (_, index) => String(1998 + index));
+
 function stripLatexCommands(input: string) {
   return input
     .replace(/%.*$/gm, "")
@@ -82,5 +84,8 @@ export async function readExamPaperText(year: string) {
     return pdfText;
   }
 
-  throw new Error(`未找到 ${normalizedYear} 年真题源文件，请检查 public/exam-papers/${normalizedYear}.tex 或 ${normalizedYear}.pdf`);
+  const supportedYearHint = `${SUPPORTED_EXAM_PAPER_YEARS[0]}-${SUPPORTED_EXAM_PAPER_YEARS.at(-1)}`;
+  throw new Error(
+    `未找到 ${normalizedYear} 年真题源文件。当前内置题库仅覆盖 ${supportedYearHint}；${normalizedYear} 年既没有 tex，也没有 pdf，可补充 public/exam-papers/${normalizedYear}.tex 或 ${normalizedYear}.pdf。`,
+  );
 }

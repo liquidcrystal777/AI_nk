@@ -29,10 +29,23 @@ function FocusLabel({ children }: { children: ReactNode }) {
   return <div className="text-lg font-black tracking-[0.02em] text-gray-950">【{children}】</div>;
 }
 
+function splitDeodorizedMeaning(input: string) {
+  const lines = input
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  return {
+    plain: lines[0] ?? "",
+    exam: lines[1] ?? "",
+  };
+}
+
 export function WordCard({ word, className = "", headerActions, footer }: WordCardProps) {
   const sourceLabel = buildSourceLabel(word);
   const sentimentLabel = normalizeSentiment(word.sentiment || "");
   const displaySpell = formatWordSpell(word.spell);
+  const deodorizedMeaning = splitDeodorizedMeaning(word.deodorizedMeaning || "");
 
   return (
     <SectionCard className={[
@@ -58,30 +71,37 @@ export function WordCard({ word, className = "", headerActions, footer }: WordCa
         </div>
 
         <div className="grid min-h-[26rem] grid-rows-[1fr_auto]">
-          <div className="space-y-5 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
-            <div className="space-y-5 text-base text-neutral-800">
-              <div className="space-y-2.5">
-                <FocusLabel>极简释义</FocusLabel>
-                <p className="text-[1.15rem] font-semibold leading-8 text-neutral-950">{word.meaning || "暂无释义"}</p>
+          <div className="space-y-6 overflow-y-auto px-5 py-5 sm:px-6 sm:py-6">
+            <div className="space-y-3 text-base text-neutral-800">
+              <FocusLabel>极简释义</FocusLabel>
+              <p className="text-[1.2rem] font-semibold leading-8 text-neutral-950">{word.meaning || "暂无释义"}</p>
+            </div>
+
+            <div className="space-y-3 rounded-[1.15rem] border border-[rgba(102,8,116,0.08)] bg-[rgba(102,8,116,0.03)] px-4 py-4">
+              <FocusLabel>去味 / 考点</FocusLabel>
+
+              <div>
+                <span className="text-sm font-bold text-neutral-900">白话解释</span>
+                <p className="mt-2 text-[1.02rem] leading-8 text-neutral-900">{deodorizedMeaning.plain || word.deodorizedMeaning || "暂无去味"}</p>
               </div>
 
-              <div className="space-y-4">
-                <FocusLabel>考点/逻辑</FocusLabel>
+              <div>
+                <span className="text-sm font-bold text-neutral-900">考研常考法</span>
+                <p className="mt-2 text-[0.98rem] leading-7 text-neutral-700">{deodorizedMeaning.exam || "暂无考点提示"}</p>
+              </div>
+            </div>
 
-                <div>
-                  <span className="font-bold text-gray-900">1. 原文</span>
-                  <p className="mt-1.5 font-serif text-[1.02rem] leading-8 italic text-gray-800">{word.originalSentence || "暂无原文"}</p>
-                </div>
+            <div className="space-y-4">
+              <FocusLabel>辅助记忆</FocusLabel>
 
-                <div>
-                  <span className="font-bold text-gray-900">2. 记忆/词根</span>
-                  <p className="mt-1.5 text-[1.02rem] leading-8 text-neutral-800">{word.usageExplanation || "暂无记忆/词根"}</p>
-                </div>
+              <div>
+                <span className="text-sm font-bold text-gray-900">记忆 / 词根</span>
+                <p className="mt-1.5 text-[1.02rem] leading-8 text-neutral-800">{word.usageExplanation || "暂无记忆/词根"}</p>
+              </div>
 
-                <div>
-                  <span className="font-bold text-gray-900">3. 去味</span>
-                  <p className="mt-1.5 text-[1.02rem] leading-8 text-neutral-800">{word.deodorizedMeaning || "暂无去味"}</p>
-                </div>
+              <div>
+                <span className="text-sm font-bold text-gray-900">最短语境</span>
+                <p className="mt-1.5 font-serif text-[0.96rem] leading-7 italic text-gray-700">{word.originalSentence || "暂无原文"}</p>
               </div>
             </div>
           </div>

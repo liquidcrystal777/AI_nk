@@ -28,6 +28,14 @@ export function normalizeMultilineText(input: unknown) {
     .join("\n");
 }
 
+export function normalizeMultilineTextWithLimit(input: unknown, maxLines = 2) {
+  return normalizeMultilineText(input)
+    .split("\n")
+    .filter(Boolean)
+    .slice(0, maxLines)
+    .join("\n");
+}
+
 export function safeTrim(value: string) {
   return value.trim();
 }

@@ -15,6 +15,11 @@ export default function RecordPage() {
     useRecordDraft(settings);
 
   async function handleConfirm() {
+    if (step === "input") {
+      await generate();
+      return;
+    }
+
     const ok = await save();
     if (ok) {
       router.push("/");
@@ -27,22 +32,25 @@ export default function RecordPage() {
         title={step === "input" ? "录入新词" : "编辑卡片"}
         showBack
         backHref="/"
-        onConfirm={step === "edit" ? handleConfirm : undefined}
-        confirmDisabled={isSaving}
+        onConfirm={handleConfirm}
+        confirmDisabled={step === "input" ? !canGenerate || isGenerating : isSaving}
+        showSettings={step !== "input"}
       />
-      <main className="flex flex-1 flex-col gap-4 px-4 py-4">
-        {step === "input" ? (
-          <RecordPromptForm
-            draft={draft}
-            error={error}
-            isGenerating={isGenerating}
-            canGenerate={canGenerate}
-            onFieldChange={updateField}
-            onGenerate={generate}
-          />
-        ) : (
-          <WordEditorForm draft={draft} error={error} isSaving={isSaving} onFieldChange={updateField} onSave={handleConfirm} />
-        )}
+      <main className="flex flex-1 flex-col px-4 pb-6 pt-5">
+        <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col">
+          {step === "input" ? (
+            <RecordPromptForm
+              draft={draft}
+              error={error}
+              isGenerating={isGenerating}
+              canGenerate={canGenerate}
+              onFieldChange={updateField}
+              onGenerate={generate}
+            />
+          ) : (
+            <WordEditorForm draft={draft} error={error} isSaving={isSaving} onFieldChange={updateField} onSave={handleConfirm} />
+          )}
+        </div>
       </main>
     </AppShell>
   );

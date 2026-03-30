@@ -1,7 +1,7 @@
 import { liveQuery } from "dexie";
 import { db } from "@/lib/db/db";
 import { DEFAULT_AI_MODEL_NAME, DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
-import type { BrowseFilters, SettingsRecord, WordRecord } from "@/types/db";
+import type { BackupPayload, BrowseFilters, SettingsRecord, WordRecord } from "@/types/db";
 
 function resolveSettings(settings?: Partial<SettingsRecord>): SettingsRecord {
   return {
@@ -79,6 +79,18 @@ export async function getBrowseFilterOptions() {
 export async function getNextReviewWords(now = Date.now(), limit = 20) {
   const dueWords = await db.words.where("nextReviewTime").belowOrEqual(now).sortBy("nextReviewTime");
   return dueWords.slice(0, limit);
+}
+
+export async function getAllWords() {
+  return db.words.toArray();
+}
+
+export async function getBackupPayload(): Promise<BackupPayload> {
+  const [settings, words] = await Promise.all([db.settings.get(SETTINGS_ID), db.words.toArray()]);
+  return {
+    settings: settings ? resolveSettings(settings) : null,
+    words,
+  };
 }
 
 export async function getNextReviewWord(now = Date.now()) {

@@ -309,3 +309,172 @@
 - 业务代码可构建
 - 主要闭环已打通
 - 若后续要清理 lint，需要优先处理 Android 静态产物的 ESLint 扫描范围
+
+## 最新进展补充（2026-03-30，第四轮）
+
+### 1. 本轮又补齐了“手机优先”的两个关键方向
+
+本轮真正落地的重点不是继续堆 UI，而是：
+
+- 补齐本地备份导入导出，保证本地词库可迁移
+- 收紧词卡内容结构，让卡片更适合考研复习
+- 持续把录入页往手机操作闭环收敛
+
+涉及的主要源码：
+
+- `app/settings/page.tsx`
+- `components/settings/settings-form.tsx`
+- `lib/db/backup.ts`
+- `lib/db/queries.ts`
+- `lib/db/mutations.ts`
+- `types/db.ts`
+- `lib/ai/client.ts`
+- `lib/ai/parser.ts`
+- `lib/utils/text.ts`
+- `components/common/word-card.tsx`
+- `components/record/record-prompt-form.tsx`
+- `app/record/page.tsx`
+
+### 2. 设置页已经具备本地 JSON 备份闭环
+
+当前已实现：
+
+- 导出本地备份 JSON
+- 导入本地备份 JSON
+- 两种导入模式：
+  - `replace`：覆盖本机词库
+  - `append`：仅追加新词
+- 追加模式按 `spell + year + sourceTextId + meaning` 去重，不依赖 `id`
+
+这是非常关键的真实需求，不是“锦上添花”功能。用户明确说过：项目还要持续开发，但他现在着急在手机上使用，所以必须先保证词库迁移与备份。
+
+### 3. AI 词卡策略已改成“最短语境 + 两层去味”
+
+当前约束已经不是“解释文章”，而是“生成更适合长期复习的词卡”。
+
+已落地规则：
+
+- `originalSentence`：必须是最短可辨识语境，不鼓励长句摘录
+- `deodorizedMeaning`：保留两层
+  1. 白话解释
+  2. 考研常考法 / 常见误判点
+- parser 允许 `deodorizedMeaning` 保留最多两行
+
+注意：这轮的目标是把卡片从“阅读讲解卡”拉回“考研复习卡”。
+
+### 4. 共享词卡内容占比已重排
+
+`components/common/word-card.tsx` 当前重点顺序已经调整为：
+
+- 主重点：`meaning`
+- 次重点：`deodorizedMeaning`
+- 辅助：`usageExplanation`
+- 更弱辅助：`originalSentence`
+
+也就是说，原句现在只是帮助识别语境，不再充当主要记忆负担。
+
+### 5. 本轮 APK 为什么没有打包成功
+
+这次 APK 没出包，**不是业务源码有问题**，而是 Android 本机构建环境没补齐。
+
+已经实际验证过：
+
+- `next build`：通过
+- 定向 `eslint`：通过
+- `npx cap sync android`：通过
+
+说明：
+
+- Web 端业务代码可以构建
+- Capacitor Android 工程也能同步静态资源
+- 真正失败点发生在 Android 原生构建阶段
+
+失败过程分两段：
+
+#### 第一段失败：Gradle 联网下载失败
+
+最开始 `./gradlew assembleDebug` 会去下载 Gradle 发行包：
+
+- `gradle-8.11.1-all.zip`
+
+但当前环境里 Java/Gradle 没自动走 Clash 代理，所以出现：
+
+- `UnknownHostException: github.com`
+
+为绕过这个问题，本轮做了一个**仅本机临时**处理：
+
+- 把 `android/gradle/wrapper/gradle-wrapper.properties` 里的 `distributionUrl`
+- 临时改成指向根目录本地 zip：
+  - `file:///home/liquidcrystal/Vocabulary2/gradle-8.11.1-all.zip`
+
+注意：
+
+- 这个改动只是为了当前机器临时打包
+- **不应该默认提交到仓库**，因为它带有本机绝对路径
+
+#### 第二段失败：Android SDK 缺组件 / license 未接受
+
+在解决 Gradle zip 之后，构建继续往前走，随后又卡在 Android SDK：
+
+已确认本机 SDK 路径是：
+
+- `/usr/lib/android-sdk`
+
+并已写入：
+
+- `android/local.properties`
+  - `sdk.dir=/usr/lib/android-sdk`
+
+但这台环境仍然缺或未就绪：
+
+- `platforms;android-35`
+- `build-tools;34.0.0`
+- 对应 licenses 也未接受
+
+而项目当前 Android 配置要求：
+
+- `android/variables.gradle`
+  - `compileSdkVersion = 35`
+  - `targetSdkVersion = 35`
+
+所以本轮 APK 最终失败的根本原因是：
+
+- **Android 构建环境不完整**
+- 不是业务代码报错
+- 不是 Next / React / Capacitor 代码本身不可构建
+
+### 6. 下一个 AI 应该怎么引导用户继续 APK
+
+下次继续时，不要先改业务代码，直接先处理环境。
+
+推荐顺序：
+
+1. 检查 `android/gradle/wrapper/gradle-wrapper.properties`
+   - 如果里面还是本机绝对路径的 `file:///home/liquidcrystal/Vocabulary2/gradle-8.11.1-all.zip`
+   - 先判断是否继续沿用本地 zip，还是恢复官方下载地址
+2. 检查 `android/local.properties` 是否存在
+   - 当前本机写的是：`sdk.dir=/usr/lib/android-sdk`
+3. 检查 `/usr/lib/android-sdk` 是否已有：
+   - `platforms/android-35`
+   - `build-tools/34.0.0`
+4. 如果没有，先引导用户安装 SDK 组件并接受 licenses
+5. 然后再执行：
+   - `npm run apk:debug`
+6. 成功后记录 APK 输出路径
+
+### 7. 提交时要注意哪些东西不要默认带上
+
+本轮有几类文件是明显的“本机态/调试态”，不要默认一起提交：
+
+- `android/gradle/wrapper/gradle-wrapper.properties` 中指向本地绝对路径的改动
+- `android/local.properties`
+- 根目录 `gradle-8.11.1-all.zip`
+- 各类截图、快照、调试日志文件
+- 若用户未明确要求，也不要默认把新增 PDF 真题素材一起提交
+
+应优先提交的是：
+
+- 备份导入导出相关源码
+- 录入页与词卡收敛相关源码
+- AI prompt / parser / text 归一化源码
+- 本文档 `readme_ai.md`
