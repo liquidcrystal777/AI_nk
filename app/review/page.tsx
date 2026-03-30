@@ -8,8 +8,18 @@ import { AttitudeScreen, MeaningScreen, CardResultScreen } from "@/components/re
 import { useReviewStage } from "@/lib/hooks/use-review-stage";
 
 export default function ReviewPage() {
-  const { loading, currentWord, stage, meaningOptions, handleAttitude, handleForget, handleMeaning, handleNextWord } =
-    useReviewStage();
+  const {
+    loading,
+    currentWord,
+    stage,
+    outcome,
+    meaningOptions,
+    handleAttitude,
+    handleForget,
+    handleSkip,
+    handleMeaning,
+    handleNextWord,
+  } = useReviewStage();
 
   return (
     <AppShell>
@@ -20,14 +30,18 @@ export default function ReviewPage() {
         ) : currentWord ? (
           <>
             {stage === "attitude" && (
-              <AttitudeScreen word={currentWord} onSelect={handleAttitude} onForget={handleForget} />
+              <AttitudeScreen word={currentWord} onSelect={handleAttitude} onForget={handleForget} onSkip={handleSkip} />
             )}
             {stage === "meaning" && (
-              <MeaningScreen word={currentWord} options={meaningOptions} onSelect={handleMeaning} onForget={handleForget} />
+              <MeaningScreen
+                word={currentWord}
+                options={meaningOptions}
+                onSelect={handleMeaning}
+                onForget={handleForget}
+                onSkip={handleSkip}
+              />
             )}
-            {stage === "card" && (
-              <CardResultScreen word={currentWord} onNext={handleNextWord} />
-            )}
+            {stage === "card" && <CardResultScreen word={currentWord} outcome={outcome} onNext={handleNextWord} />}
           </>
         ) : (
           <EmptyState title="当前没有待复习单词" description="你可以先录入新词，或稍后再回来复习。" />
@@ -36,4 +50,3 @@ export default function ReviewPage() {
     </AppShell>
   );
 }
-

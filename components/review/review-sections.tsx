@@ -1,13 +1,19 @@
 "use client";
 
-import { Minus, Circle, Plus, ArrowRight, Diamond } from "lucide-react";
+import { Minus, Circle, Plus, ArrowRight, Diamond, CheckCircle2, SkipForward, XCircle } from "lucide-react";
 import { SectionCard } from "@/components/common/section-card";
 import { APP_PURPLE } from "@/lib/utils/constants";
+import type { ReviewOutcome } from "@/lib/hooks/use-review-stage";
 import type { WordRecord } from "@/types/db";
 import type { ReviewAction } from "@/types/review";
 
 type ReviewCardProps = {
   word: WordRecord;
+};
+
+type ReviewAuxActionsProps = {
+  onForget: () => void;
+  onSkip: () => void;
 };
 
 function buildSourceLabel(word: WordRecord) {
@@ -37,6 +43,56 @@ function ConfusingMeaningList({ word }: { word: WordRecord }) {
       ))}
     </div>
   );
+}
+
+function ReviewAuxActions({ onForget, onSkip }: ReviewAuxActionsProps) {
+  return (
+    <div className="flex items-center gap-2">
+      <button
+        type="button"
+        onClick={onSkip}
+        className="flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500"
+      >
+        <SkipForward size={12} />
+        跳过
+      </button>
+      <button
+        type="button"
+        onClick={onForget}
+        className="flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500"
+      >
+        <Diamond size={12} />
+        遗忘
+      </button>
+    </div>
+  );
+}
+
+function getOutcomeMeta(outcome: ReviewOutcome) {
+  if (outcome === "success") {
+    return {
+      label: "回答正确",
+      icon: CheckCircle2,
+      textClassName: "text-emerald-600",
+      panelClassName: "border-emerald-100 bg-emerald-50/70",
+    };
+  }
+
+  if (outcome === "skip") {
+    return {
+      label: "本词已跳过",
+      icon: SkipForward,
+      textClassName: "text-amber-600",
+      panelClassName: "border-amber-100 bg-amber-50/70",
+    };
+  }
+
+  return {
+    label: "回答错误",
+    icon: XCircle,
+    textClassName: "text-rose-500",
+    panelClassName: "border-rose-100 bg-rose-50/70",
+  };
 }
 
 export function ReviewCard({ word }: ReviewCardProps) {
@@ -95,45 +151,31 @@ export function ReviewCard({ word }: ReviewCardProps) {
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────────
-// 新复习流程：Screen(1) 判断正负态度 / Screen(2) 判断词意 / Card 展示
-// ────────────────────────────────────────────────────────────────────────────
-
 export function AttitudeScreen({
   word,
   onSelect,
   onForget,
+  onSkip,
 }: {
   word: WordRecord;
   onSelect: (attitude: "+" | "O" | "-") => void;
   onForget: () => void;
+  onSkip: () => void;
 }) {
   return (
     <div className="flex flex-1 flex-col">
-      {/* 顶部标题行 */}
       <div className="flex items-center justify-between px-1 pb-4">
         <span className="text-sm font-semibold text-neutral-500">判断正负态度</span>
-        <button
-          type="button"
-          onClick={onForget}
-          className="flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500"
-        >
-          <Diamond size={12} />
-          遗忘
-        </button>
+        <ReviewAuxActions onForget={onForget} onSkip={onSkip} />
       </div>
 
-      {/* 中央单词 */}
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
           <div className="text-5xl font-black tracking-tight text-neutral-900">{word.spell}</div>
-          {word.partOfSpeech ? (
-            <div className="mt-3 text-base text-neutral-400">{word.partOfSpeech}</div>
-          ) : null}
+          {word.partOfSpeech ? <div className="mt-3 text-base text-neutral-400">{word.partOfSpeech}</div> : null}
         </div>
       </div>
 
-      {/* 底部三按钮 */}
       <div className="flex gap-4 pb-4">
         {(
           [
@@ -164,38 +206,28 @@ export function MeaningScreen({
   options,
   onSelect,
   onForget,
+  onSkip,
 }: {
   word: WordRecord;
   options: string[];
   onSelect: (meaning: string) => void;
   onForget: () => void;
+  onSkip: () => void;
 }) {
   return (
     <div className="flex flex-1 flex-col">
-      {/* 顶部标题行 */}
       <div className="flex items-center justify-between px-1 pb-4">
         <span className="text-sm font-semibold text-neutral-500">判断词意</span>
-        <button
-          type="button"
-          onClick={onForget}
-          className="flex items-center gap-1 rounded-full border border-neutral-200 px-3 py-1.5 text-xs font-medium text-neutral-500"
-        >
-          <Diamond size={12} />
-          遗忘
-        </button>
+        <ReviewAuxActions onForget={onForget} onSkip={onSkip} />
       </div>
 
-      {/* 中央单词 */}
       <div className="flex flex-1 items-center justify-center">
         <div className="text-center">
           <div className="text-5xl font-black tracking-tight text-neutral-900">{word.spell}</div>
-          {word.partOfSpeech ? (
-            <div className="mt-3 text-base text-neutral-400">{word.partOfSpeech}</div>
-          ) : null}
+          {word.partOfSpeech ? <div className="mt-3 text-base text-neutral-400">{word.partOfSpeech}</div> : null}
         </div>
       </div>
 
-      {/* 选项按钮 */}
       <div className="flex flex-col gap-3 pb-4">
         {options.map((option) => (
           <button
@@ -214,20 +246,27 @@ export function MeaningScreen({
 
 export function CardResultScreen({
   word,
+  outcome,
   onNext,
 }: {
   word: WordRecord;
+  outcome: ReviewOutcome;
   onNext: () => void;
 }) {
+  const meta = getOutcomeMeta(outcome);
+  const Icon = meta.icon;
+
   return (
     <div className="flex flex-1 flex-col gap-4">
       <ReviewCard word={word} />
 
-      {/* 测试结果 + 下一词 */}
-      <div className="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-5 py-4 shadow-sm">
+      <div className={`flex items-center justify-between rounded-2xl border px-5 py-4 shadow-sm ${meta.panelClassName}`}>
         <div className="flex items-center gap-2 text-sm font-semibold">
           <span className="text-neutral-500">测试结果：</span>
-          <span className="text-lg font-black text-red-500">✗</span>
+          <span className={`flex items-center gap-2 text-base font-black ${meta.textClassName}`}>
+            <Icon size={18} />
+            {meta.label}
+          </span>
         </div>
         <button
           type="button"

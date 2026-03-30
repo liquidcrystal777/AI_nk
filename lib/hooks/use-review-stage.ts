@@ -4,8 +4,10 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import { applyReviewAction } from "@/lib/db/mutations";
 import { getNextReviewWords } from "@/lib/db/queries";
 import type { WordRecord } from "@/types/db";
+import type { ReviewAction } from "@/types/review";
 
 export type ReviewStage = "attitude" | "meaning" | "card";
+export type ReviewOutcome = ReviewAction | null;
 
 function matchesSentiment(sentiment: string, selected: "+" | "O" | "-"): boolean {
   if (selected === "+") return sentiment.includes("正");
@@ -21,7 +23,6 @@ function buildMeaningOptions(word: WordRecord): string[] {
     word.confusingMeaning3,
   ].filter(Boolean);
 
-  // Fisher-Yates shuffle
   for (let i = candidates.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [candidates[i], candidates[j]] = [candidates[j], candidates[i]];
@@ -33,6 +34,7 @@ export function useReviewStage() {
   const [queue, setQueue] = useState<WordRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [stage, setStage] = useState<ReviewStage>("attitude");
+  const [outcome, setOutcome] = useState<ReviewOutcome>(null);
   const [, startTransition] = useTransition();
 
   const refresh = useCallback(async () => {
@@ -40,6 +42,7 @@ export function useReviewStage() {
     const words = await getNextReviewWords();
     setQueue(words);
     setStage("attitude");
+    setOutcome(null);
     setLoading(false);
   }, []);
 
@@ -54,42 +57,53 @@ export function useReviewStage() {
 
   const meaningOptions = useMemo(
     () => (currentWord ? buildMeaningOptions(currentWord) : []),
-    // 每次换词重新洗牌，相同词复现时也重新洗牌（刻意设计）
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [wordId],
   );
+
+  const revealCard = useCallback((nextOutcome: ReviewOutcome) => {
+    setOutcome(nextOutcome);
+    setStage("card");
+  }, []);
 
   const handleAttitude = useCallback(
     async (selected: "+" | "O" | "-") => {
       if (!currentWord) return;
       if (matchesSentiment(currentWord.sentiment, selected)) {
         setStage("meaning");
-      } else {
-        await applyReviewAction(currentWord.id!, "fail");
-        setStage("card");
+        return;
       }
+
+      await applyReviewAction(currentWord.id!, "fail");
+      revealCard("fail");
     },
-    [currentWord],
+    [currentWord, revealCard],
   );
 
   const handleForget = useCallback(async () => {
     if (!currentWord) return;
     await applyReviewAction(currentWord.id!, "fail");
-    setStage("card");
-  }, [currentWord]);
+    revealCard("fail");
+  }, [currentWord, revealCard]);
+
+  const handleSkip = useCallback(() => {
+    if (!currentWord) return;
+    revealCard("skip");
+  }, [currentWord, revealCard]);
 
   const handleMeaning = useCallback(
     async (selected: string) => {
       if (!currentWord) return;
       if (selected === currentWord.meaning) {
         await applyReviewAction(currentWord.id!, "success");
-        await refresh();
-      } else {
-        await applyReviewAction(currentWord.id!, "fail");
-        setStage("card");
+        revealCard("success");
+        return;
       }
+
+      await applyReviewAction(currentWord.id!, "fail");
+      revealCard("fail");
     },
-    [currentWord, refresh],
+    [currentWord, revealCard],
   );
 
   const handleNextWord = useCallback(async () => {
@@ -100,9 +114,11 @@ export function useReviewStage() {
     loading,
     currentWord,
     stage,
+    outcome,
     meaningOptions,
     handleAttitude,
     handleForget,
+    handleSkip,
     handleMeaning,
     handleNextWord,
   };
