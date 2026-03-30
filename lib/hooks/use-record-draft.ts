@@ -21,7 +21,7 @@ const emptyDraft: RecordDraft = {
   sentiment: "",
   deodorizedMeaning: "",
   year: "",
-  sourceTextId: "Text1",
+  sourceTextId: "TEXT1",
 };
 
 export function useRecordDraft(settings = DEFAULT_SETTINGS) {

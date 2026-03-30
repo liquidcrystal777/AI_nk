@@ -186,78 +186,113 @@
 - 保持实现简单直接
 - 用户没明确要的功能，不主动扩展
 
-## 最新已完成改动（2026-03-30，第二轮）
+## 最新已完成改动（2026-03-30，第三轮）
 
-### 1. browse 删除单词已支持即时刷新
+### 1. 单词卡进一步收敛为“自用考研复习卡”
 
-- `lib/hooks/use-browse-words.ts` 已从手动 `useEffect + setState` 改为 `useLiveQuery(() => getBrowseWords(filters), [filters], [])`
-- 现在在 browse 页确认删除后，列表会直接响应 Dexie 数据变化
-- 不再需要返回 main page 再重新进入 `/browse`
+本轮用户再次明确：
 
-实现原则：
+- 单词卡不是为“解释某一篇阅读”服务，而是为**整个考研背词迁移**服务
+- browse 与 review 仍然只能复用**同一个** `WordCard`
+- 单词卡正文要固定成两个标签：
+  - `【极简释义】`
+  - `【考点/逻辑】`
+- 且两者放在**同一个连续内容块**里，不再拆成两块大 section
 
-- 没有新造第二套 browse 数据源
-- 继续复用 `getBrowseWords(filters)`
-- 删除动作仍走 `deleteWord(id)`
+当前 `components/common/word-card.tsx` 已固定为：
 
-### 2. 共享 `WordCard` 已按 `wordcard.png` 方向重构
+- Header：紫底白字（`bg-[#660874] text-white`）
+- 单词：`font-serif text-3xl`
+- 词性：`font-serif text-xl`
+- 标签：`font-bold text-gray-900`
+- 原文：`font-serif italic text-gray-800`
+- 容器：`shadow-md bg-white rounded-md`
+- 内容区：`space-y-4 leading-relaxed`
 
-用户在这一轮明确要求：
+### 2. `WordCard` 的正文顺序现在是硬约束
 
-- **不能拆 browse / review 两套卡片正文实现**
-- 共享 `WordCard` 必须继续作为唯一主体
-- 布局要更接近根目录 `wordcard.png`
+用户要求非常明确：
 
-当前 `components/common/word-card.tsx` 已调整为：
+- `【考点/逻辑】` 内部必须严格按以下顺序展示：
+  1. 原文
+  2. 记忆/词根
+  3. 去味
 
-- 外层主标题突出：`spell + partOfSpeech`
-- 第一重点块：`[极简释义]`
-- 第二重点块：`[考点 / 逻辑]`
-- `sentiment` 不再和正文主块并列，而是独立 badge
+当前共享 `WordCard` 已统一成这个顺序，且 **browse / review 都是同一套顺序**。
 
-额外说明：
+重要：
 
-- `compact` 模式下也保留同一信息层级，只是收缩为核心内容
-- `compact` 时仍显示 `[考点 / 逻辑]` 中最核心的“去味”信息，避免 browse/review 卡片语义断层
+- 这一轮已经取消了 `compact` 对正文层级的裁剪语义
+- 即使 browse 侧传 `compact`，共享卡片正文也不再减少字段，只保留同一内容结构
+- 后续不要再恢复“compact 只显示去味”这种实现，否则会再次违背用户要求
 
-### 3. browse 页卡片容器已重新收敛
+### 3. browse 展开模式已删除
 
-- `components/browse/word-list.tsx` 中：
-  - 左右切换按钮已从卡片两侧移到底部
-  - 横向 track 改为优先保证卡片完整展示
-  - `activeIndex` 越界时会自动回收，避免删除最后一张卡片后索引错位
-- browse 页现在的目标是：
-  - 首尾卡片完整显示
-  - 按钮不挤压正文主区域
-  - 删除确认 / 展开详情时仍能完整阅读内容
+`components/browse/word-list.tsx` 当前已经：
 
-### 4. 非首页页面 UI 骨架已统一一轮
+- 删除展开/收起按钮
+- 删除 `expanded` 状态
+- 浏览页卡片固定使用单一展示模式
+- 删除后列表仍可即时刷新
 
-当前已统一以下页面的基础风格：
+这意味着 browse 的定位已经变成：
 
-- `/browse`
-- `/settings`
-- `/review`
+- 横向浏览词卡
+- 删除词卡
+- 查看同一套稳定正文
 
-已统一的核心基座：
+而不是“先看缩略卡，再手动展开详情”。
 
-- `components/layout/app-shell.tsx`
-- `components/layout/top-bar.tsx`
+### 4. AI 生成目标已从“本文解释”改为“考研迁移”
 
-本轮统一重点：
+`lib/ai/client.ts` 当前 prompt 约束重点：
 
-- 顶部栏高度、边框、圆角、毛玻璃感统一
-- 非首页页面背景渐变统一
-- settings / browse / review 的内容留白与卡片层级更接近同一套设计语言
+- 目标不是只解释本文，而是生成**适合整个考研复习迁移**的词卡
+- `meaning` 优先输出 **2 个极简、通用义项**
+- `originalSentence` 只允许 **1 条关键原文**
+- `usageExplanation` 只保留 **1 条短记忆/词根提示**
+- `deodorizedMeaning` 明确要求去掉翻译腔、词典腔、硬译腔
 
-### 5. review 阶段页已同步新的非首页视觉语言
+用户对“去味”的最终定义：
 
-- `components/review/review-sections.tsx` 中：
-  - `AttitudeScreen`
-  - `MeaningScreen`
-- 已从“裸内容堆叠”调整为：
-  - 顶部信息条
-  - 中部主展示容器
+- **去味 = 剔除翻译腔，用中国人很容易理解的话解释这个词常见是什么意思**
+- 不是复述原句
+- 不是词典口吻
+- 不是“表示某种含义”“引申为”这类空话
+
+### 5. parser 负责把模型漂移压回稳定展示格式
+
+`lib/ai/parser.ts` + `lib/utils/text.ts` 当前新增/确认的兜底规则：
+
+- `spell` 统一格式化为：**首字母大写，其余小写**
+- `meaning` 会被收敛成最多 2 个中文义项
+- `originalSentence` / `usageExplanation` / `deodorizedMeaning` 只保留首条/首行
+- `sourceTextId` 展示文案统一格式化为 `TEXT1` ~ `TEXT4`
+
+原则：
+
+- prompt 先约束生成方向
+- parser 再做轻量规范化
+- UI 不承担内容清洗职责
+
+### 6. Record 页文案已统一为 `TEXT`
+
+当前录入页相关文案与默认值已经统一：
+
+- `components/record/record-prompt-form.tsx`：展示 `TEXT`
+- `SOURCE_TEXT_OPTIONS`：`TEXT1` ~ `TEXT4`
+- `lib/hooks/use-record-draft.ts`：默认 `sourceTextId = "TEXT1"`
+
+底层字段语义仍然是 `sourceTextId`，没有改表结构。
+
+### 7. 这一轮顺手修掉了一个已有的 browse lint 问题
+
+`components/browse/word-list.tsx` 里：
+
+- 去掉了 `useEffect` 中同步 `setState` 的旧写法
+- 改为通过 `boundedActiveIndex` 在渲染层收敛越界索引
+
+这是为了适配当前 React 19 / Next 16 的 lint 约束，不属于功能扩张。
   - 底部动作按钮区
 
 这样 review 与 browse/settings 在视觉骨架上更统一，但仍保留各自任务型页面的交互差异。

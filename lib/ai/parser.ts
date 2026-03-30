@@ -1,4 +1,9 @@
-import { normalizeMultilineText, normalizeSingleLineText } from "@/lib/utils/text";
+import {
+  formatWordSpell,
+  normalizeCompactChineseList,
+  normalizeSingleLineText,
+  takeFirstLine,
+} from "@/lib/utils/text";
 import type { RecordDraft } from "@/types/db";
 
 function extractJsonString(input: string) {
@@ -7,16 +12,16 @@ function extractJsonString(input: string) {
 }
 
 function assertWordDraftPayload(payload: Record<string, unknown>) {
-  const spell = normalizeSingleLineText(payload.spell);
+  const spell = formatWordSpell(payload.spell);
   const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
-  const meaning = normalizeSingleLineText(payload.meaning);
+  const meaning = normalizeCompactChineseList(payload.meaning);
   const confusingMeaning1 = normalizeSingleLineText(payload.confusingMeaning1);
   const confusingMeaning2 = normalizeSingleLineText(payload.confusingMeaning2);
   const confusingMeaning3 = normalizeSingleLineText(payload.confusingMeaning3);
-  const originalSentence = normalizeMultilineText(payload.originalSentence);
-  const usageExplanation = normalizeMultilineText(payload.usageExplanation);
+  const originalSentence = takeFirstLine(payload.originalSentence);
+  const usageExplanation = takeFirstLine(payload.usageExplanation);
   const sentiment = normalizeSingleLineText(payload.sentiment);
-  const deodorizedMeaning = normalizeMultilineText(payload.deodorizedMeaning);
+  const deodorizedMeaning = takeFirstLine(payload.deodorizedMeaning);
 
   if (
     !spell ||
@@ -30,7 +35,7 @@ function assertWordDraftPayload(payload: Record<string, unknown>) {
     !sentiment ||
     !deodorizedMeaning
   ) {
-    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、三个易混淆含义、原句、释义、态度、去味。");
+    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、三个易混淆含义、原文、记忆/词根、态度、去味。");
   }
 
   return {

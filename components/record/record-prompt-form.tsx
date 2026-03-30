@@ -3,7 +3,7 @@
 import { PrimaryButton } from "@/components/common/primary-button";
 import type { RecordDraft } from "@/types/db";
 
-const SOURCE_TEXT_OPTIONS = ["Text1", "Text2", "Text3", "Text4"] as const;
+const SOURCE_TEXT_OPTIONS = ["TEXT1", "TEXT2", "TEXT3", "TEXT4"] as const;
 
 type RecordPromptFormProps = {
   draft: RecordDraft;
@@ -46,7 +46,7 @@ export function RecordPromptForm({
         </div>
 
         <div className="space-y-2">
-          <label className="text-sm font-semibold text-neutral-800">文章</label>
+          <label className="text-sm font-semibold text-neutral-800">TEXT</label>
           <select
             value={draft.sourceTextId}
             onChange={(event) => onFieldChange("sourceTextId", event.target.value)}
