@@ -12,22 +12,22 @@ type BrowseSearchBarProps = {
 
 export function BrowseSearchBar({ filters, years, sourceTextIds, onChange }: BrowseSearchBarProps) {
   return (
-    <div className="space-y-3 rounded-3xl border border-neutral-200 bg-white p-4 shadow-sm">
-      <label className="flex items-center gap-3 rounded-2xl border border-neutral-200 px-4 py-3">
-        <Search size={18} className="text-neutral-500" />
+    <div className="space-y-2 rounded-[1.75rem] border border-neutral-200/80 bg-white/90 p-3 shadow-sm backdrop-blur-sm">
+      <label className="flex items-center gap-2 rounded-2xl border border-neutral-200 bg-neutral-50/70 px-3 py-2.5">
+        <Search size={16} className="text-neutral-400" />
         <input
           value={filters.keyword}
           onChange={(event) => onChange({ ...filters, keyword: event.target.value })}
           placeholder="搜索拼写、释义或例句"
-          className="w-full bg-transparent text-sm outline-none"
+          className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400"
         />
       </label>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2">
         <select
           value={filters.year}
           onChange={(event) => onChange({ ...filters, year: event.target.value })}
-          className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none"
+          className="rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-700 outline-none"
         >
           <option value="">全部年份</option>
           {years.map((year) => (
@@ -40,7 +40,7 @@ export function BrowseSearchBar({ filters, years, sourceTextIds, onChange }: Bro
         <select
           value={filters.sourceTextId}
           onChange={(event) => onChange({ ...filters, sourceTextId: event.target.value })}
-          className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm outline-none"
+          className="rounded-2xl border border-neutral-200 bg-white px-3 py-2.5 text-sm text-neutral-700 outline-none"
         >
           <option value="">全部文章</option>
           {sourceTextIds.map((sourceTextId) => (
