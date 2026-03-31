@@ -1,7 +1,8 @@
 "use client";
 
+import { WordCard } from "@/components/common/word-card";
 import { PrimaryButton } from "@/components/common/primary-button";
-import type { RecordDraft } from "@/types/db";
+import type { RecordDraft, WordRecord } from "@/types/db";
 
 type WordEditorFormProps = {
   draft: RecordDraft;
@@ -57,16 +58,31 @@ function EditorSection(props: {
   );
 }
 
+function buildPreviewWord(draft: RecordDraft): WordRecord {
+  return {
+    spell: draft.spell,
+    partOfSpeech: draft.partOfSpeech,
+    meaning: draft.meaning,
+    originalSentence: draft.originalSentence,
+    usageExplanation: draft.usageExplanation,
+    sentiment: draft.sentiment,
+    deodorizedMeaning: draft.deodorizedMeaning,
+    year: draft.year,
+    sourceTextId: draft.sourceTextId,
+    status: "new",
+    reviewCount: 0,
+    nextReviewTime: 0,
+  };
+}
+
 export function WordEditorForm({ draft, error, isSaving, onFieldChange, onSave }: WordEditorFormProps) {
+  const previewWord = buildPreviewWord(draft);
+
   return (
     <div className="space-y-4 py-1">
-      <section className="rounded-[2rem] border border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(249,244,251,0.94)_100%)] p-5 shadow-[0_18px_38px_rgba(102,8,116,0.07)]">
+      <section className="space-y-3 rounded-[2rem] border border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(249,244,251,0.94)_100%)] p-4 shadow-[0_18px_38px_rgba(102,8,116,0.07)]">
         <div className="text-[11px] font-semibold uppercase tracking-[0.24em] text-[#8c6594]">Preview</div>
-        <div className="mt-3 text-[2rem] font-black tracking-[-0.04em] text-[#24132b]">{draft.spell || "未命名单词"}</div>
-        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-neutral-500">
-          <span className="rounded-full bg-white/80 px-3 py-1">{draft.partOfSpeech || "词性待补充"}</span>
-          <span className="rounded-full bg-white/80 px-3 py-1">{draft.meaning || "极简释义待补充"}</span>
-        </div>
+        <WordCard word={previewWord} variant="browse" />
       </section>
 
       <SectionCard title="基础信息" description="先确认单词本体与核心释义。">
@@ -90,31 +106,6 @@ export function WordEditorForm({ draft, error, isSaving, onFieldChange, onSave }
             value={draft.meaning}
             placeholder="极简释义"
             onChange={(value) => onFieldChange("meaning", value)}
-          />
-        </div>
-      </SectionCard>
-
-      <SectionCard title="易混淆义项" description="保留最容易误判的 3 个方向。">
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-          <EditorSection
-            label="Confusing 1"
-            value={draft.confusingMeaning1}
-            placeholder="易混淆含义 1"
-            onChange={(value) => onFieldChange("confusingMeaning1", value)}
-          />
-
-          <EditorSection
-            label="Confusing 2"
-            value={draft.confusingMeaning2}
-            placeholder="易混淆含义 2"
-            onChange={(value) => onFieldChange("confusingMeaning2", value)}
-          />
-
-          <EditorSection
-            label="Confusing 3"
-            value={draft.confusingMeaning3}
-            placeholder="易混淆含义 3"
-            onChange={(value) => onFieldChange("confusingMeaning3", value)}
           />
         </div>
       </SectionCard>

@@ -575,3 +575,145 @@ cd android
 - 保持手机优先
 - 优先删减而不是加信息
 - 不主动联动 review / record
+
+## 最新进展补充（2026-03-31，第五轮）
+
+### 1. review 已从“选项题”切到“输入词义 + AI 判题”
+
+这一轮用户明确放弃了原先的干扰项选择题模式，改为：
+
+- 在 `meaning` 阶段显示一个老式打字输入框
+- 用户自己输入中文词义
+- AI 判断是否抓住核心含义
+- 正确写 `success`，错误写 `fail`
+
+当前落点：
+
+- `app/review/page.tsx`
+- `components/review/review-sections.tsx`
+- `lib/hooks/use-review-stage.ts`
+- `lib/ai/client.ts`
+- `lib/ai/parser.ts`
+- `types/ai.ts`
+
+### 2. meaning 阶段现在是“复古输入交互”，不是按钮题
+
+当前 `components/review/review-sections.tsx` 中：
+
+- 中间区域是可聚焦的复古输入面板
+- 实际输入框隐藏，用于承接手机键盘输入
+- 面板里展示用户当前输入和闪烁光标
+- 仍保留“遗忘 / 跳过”入口
+
+这意味着后续如果继续改 review：
+
+- 不要再把 `meaning` 阶段默认改回选项题
+- 输入式判题已经是当前确认方向
+- UI 应继续服务“手机快速输入”而不是复杂答题器
+
+### 3. AI 判题链路与单词生成链路现在是两条独立通道
+
+`lib/ai/client.ts` 当前已经明确拆成两条用途不同的 AI 调用：
+
+1. **generateWordDraft**
+   - 用于录入页根据真题正文生成单词卡草稿
+2. **judgeMeaningAnswer**
+   - 用于 review 阶段判断用户输入的中文释义是否正确
+
+不要把两条链路混成一个 prompt 模板。
+
+原则：
+
+- 录入生成：强调语境、考研迁移、稳定 JSON
+- 复习判题：强调语义是否抓住核心，不抠字面一致
+
+### 4. 单词生成 prompt 已改成双层结构
+
+这是本轮最重要的约束之一。
+
+当前 `lib/ai/client.ts` 中：
+
+- `ANALYZER_SYSTEM_PROMPT` 只放规则、格式、禁止项
+- `buildWordGenerationPrompt()` 只放业务输入：
+  - `spell`
+  - `year`
+  - `sourceTextId`
+  - `sourceText`
+
+不要再把“规则说明 + 业务数据”重新混回同一个 user prompt。
+
+### 5. confusingMeaning1/2/3 已被彻底删除
+
+用户最新要求是：
+
+- 删除混淆义项
+- 删掉**所有有关的部分**
+
+当前已经同步从以下链路删除：
+
+- `types/ai.ts`
+- `types/db.ts`
+- `lib/ai/client.ts`
+- `lib/ai/parser.ts`
+- `lib/hooks/use-record-draft.ts`
+- `components/record/word-editor-form.tsx`
+- `lib/db/mutations.ts`
+- `lib/db/db.ts`
+- `lib/db/backup.ts`
+- `lib/db/queries.ts`
+
+这不是“仅不展示”，而是数据契约、解析、编辑、存储、备份、检索全链路收口。
+
+后续不要再恢复这三个字段，除非用户再次明确要求。
+
+### 6. 现在的单词生成 JSON 契约只保留 7 个核心字段
+
+当前 AI 生成词卡只应返回：
+
+- `spell`
+- `partOfSpeech`
+- `meaning`
+- `originalSentence`
+- `usageExplanation`
+- `sentiment`
+- `deodorizedMeaning`
+
+其中：
+
+- `deodorizedMeaning` 必须严格两行以内
+  1. 白话解释
+  2. 考研常见考法 / 误判点 / 语篇角色
+
+- `originalSentence` 必须是逐字摘取原文的最短可辨识语境，并保留首尾省略号语义
+
+### 7. parser 的职责是“收口”，不是“兜底兼容旧废字段”
+
+当前 `lib/ai/parser.ts` 的定位非常明确：
+
+- 解析 JSON
+- 校验必须字段
+- 规范化展示格式
+- 拒绝缺字段或格式漂移
+
+重要约束：
+
+- 不要为了兼容旧输出，再把 `confusingMeaning1/2/3` 的解析逻辑加回来
+- 如果模型输出漂移，优先收紧 prompt，而不是扩大 parser 宽容度
+
+### 8. 当前验证结论
+
+本轮最新已验证：
+
+- `npm run build`：通过
+- 全仓已无 `confusingMeaning1/2/3` 残留引用
+- record 页预览与保存链路已对齐新字段结构
+- review 输入判题链路可正常编译
+
+### 9. 后续实现优先级建议
+
+如果下一个 AI 继续工作，优先顺序应是：
+
+1. 继续围绕手机端 review / record 闭环做减法优化
+2. 保持 AI 契约稳定，不再来回改字段
+3. 如要增强判题体验，优先考虑结果反馈展示，而不是恢复选择题
+4. 除非用户再次明确要求，否则不要重新引入混淆义项、复杂抽题器或额外产品化能力

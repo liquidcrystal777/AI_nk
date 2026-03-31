@@ -5,6 +5,7 @@ import {
   normalizeSingleLineText,
   takeFirstLine,
 } from "@/lib/utils/text";
+import type { AiMeaningJudgementPayload } from "@/types/ai";
 import type { RecordDraft } from "@/types/db";
 
 function extractJsonString(input: string) {
@@ -16,36 +17,19 @@ function assertWordDraftPayload(payload: Record<string, unknown>) {
   const spell = formatWordSpell(payload.spell);
   const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
   const meaning = normalizeCompactChineseList(payload.meaning);
-  const confusingMeaning1 = normalizeSingleLineText(payload.confusingMeaning1);
-  const confusingMeaning2 = normalizeSingleLineText(payload.confusingMeaning2);
-  const confusingMeaning3 = normalizeSingleLineText(payload.confusingMeaning3);
   const originalSentence = takeFirstLine(payload.originalSentence);
   const usageExplanation = takeFirstLine(payload.usageExplanation);
   const sentiment = normalizeSingleLineText(payload.sentiment);
   const deodorizedMeaning = normalizeMultilineTextWithLimit(payload.deodorizedMeaning, 2);
 
-  if (
-    !spell ||
-    !partOfSpeech ||
-    !meaning ||
-    !confusingMeaning1 ||
-    !confusingMeaning2 ||
-    !confusingMeaning3 ||
-    !originalSentence ||
-    !usageExplanation ||
-    !sentiment ||
-    !deodorizedMeaning
-  ) {
-    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、三个易混淆含义、原文、记忆/词根、态度、去味。");
+  if (!spell || !partOfSpeech || !meaning || !originalSentence || !usageExplanation || !sentiment || !deodorizedMeaning) {
+    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、原文、记忆/词根、态度、去味。");
   }
 
   return {
     spell,
     partOfSpeech,
     meaning,
-    confusingMeaning1,
-    confusingMeaning2,
-    confusingMeaning3,
     originalSentence,
     usageExplanation,
     sentiment,
@@ -53,7 +37,7 @@ function assertWordDraftPayload(payload: Record<string, unknown>) {
   };
 }
 
-export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "year" | "sourceTextId">): RecordDraft {
+function parseJsonObject(input: unknown) {
   let payload: Record<string, unknown> = {};
 
   if (typeof input === "string") {
@@ -67,12 +51,36 @@ export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "year"
     payload = input as Record<string, unknown>;
 
     if (typeof payload.raw === "string") {
-      return parseWordDraft(payload.raw, context);
+      return parseJsonObject(payload.raw);
     }
   } else {
     throw new Error("AI 返回内容为空，请重试。");
   }
 
+  return payload;
+}
+
+function assertMeaningJudgementPayload(payload: Record<string, unknown>) {
+  const verdict = normalizeSingleLineText(payload.verdict).toLowerCase();
+  const reason = takeFirstLine(payload.reason);
+  const acceptedAnswer = normalizeCompactChineseList(payload.acceptedAnswer, 2) || normalizeSingleLineText(payload.acceptedAnswer);
+  const confidenceRaw = payload.confidence;
+  const confidence = typeof confidenceRaw === "number" ? confidenceRaw : Number(confidenceRaw);
+
+  if ((verdict !== "correct" && verdict !== "incorrect") || !reason || !acceptedAnswer || Number.isNaN(confidence)) {
+    throw new Error("AI 判题结果格式不完整，请重试。");
+  }
+
+  return {
+    verdict,
+    reason,
+    acceptedAnswer,
+    confidence: Math.max(0, Math.min(1, confidence)),
+  } as const satisfies Required<AiMeaningJudgementPayload>;
+}
+
+export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "year" | "sourceTextId">): RecordDraft {
+  const payload = parseJsonObject(input);
   const normalized = assertWordDraftPayload(payload);
 
   return {
@@ -80,4 +88,8 @@ export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "year"
     year: context.year,
     sourceTextId: context.sourceTextId,
   };
+}
+
+export function parseMeaningJudgement(input: unknown) {
+  return assertMeaningJudgementPayload(parseJsonObject(input));
 }

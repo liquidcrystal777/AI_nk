@@ -7,9 +7,6 @@ type LegacyWordRecord = {
   spell?: string;
   pronunciation?: string;
   meaning?: string;
-  confusingMeaning1?: string;
-  confusingMeaning2?: string;
-  confusingMeaning3?: string;
   prompt?: string;
   year?: string;
   sourceTextId?: string;
@@ -106,9 +103,6 @@ export class VocabularyDatabase extends Dexie {
             word.spell = normalizeLegacySingleLine(word.spell);
             word.partOfSpeech = normalizeLegacySingleLine(word.partOfSpeech);
             word.meaning = normalizeLegacySingleLine(word.meaning);
-            word.confusingMeaning1 = normalizeLegacySingleLine(word.confusingMeaning1);
-            word.confusingMeaning2 = normalizeLegacySingleLine(word.confusingMeaning2);
-            word.confusingMeaning3 = normalizeLegacySingleLine(word.confusingMeaning3);
             word.originalSentence = normalizeLegacySentence(word.originalSentence);
             word.usageExplanation = String(word.usageExplanation ?? "").trim();
             word.sentiment = normalizeLegacySingleLine(word.sentiment);

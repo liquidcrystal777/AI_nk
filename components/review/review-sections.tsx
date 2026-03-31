@@ -1,9 +1,10 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Minus, Circle, Plus, ArrowRight, Diamond, CheckCircle2, SkipForward, XCircle } from "lucide-react";
 import { WordCard } from "@/components/common/word-card";
 import { APP_PURPLE } from "@/lib/utils/constants";
-import type { MeaningOption, ReviewOutcome } from "@/lib/hooks/use-review-stage";
+import type { ReviewOutcome } from "@/lib/hooks/use-review-stage";
 import type { WordRecord } from "@/types/db";
 import type { ReviewAction } from "@/types/review";
 
@@ -86,8 +87,48 @@ function ReviewSpellHero({ word }: { word: WordRecord }) {
   );
 }
 
+function VintageMeaningInput({ value, onFocus }: { value: string; onFocus: () => void }) {
+  return (
+    <>
+      <button
+        type="button"
+        onClick={onFocus}
+        className="flex min-h-[11.5rem] w-full items-center justify-center rounded-[2rem] border px-6 text-center shadow-[0_18px_40px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
+        style={{
+          borderColor: "rgba(102,8,116,0.18)",
+          backgroundColor: "rgba(102,8,116,0.06)",
+        }}
+        aria-label="输入词义"
+      >
+        <div className="font-mono text-[1.45rem] font-semibold tracking-[0.08em] text-[#660874] sm:text-[1.75rem]">
+          <span>{value || ""}</span>
+          <span className="ml-1 inline-block vintage-caret">|</span>
+        </div>
+      </button>
+
+      <style jsx>{`
+        .vintage-caret {
+          animation: vintage-caret-blink 1s steps(1, end) infinite;
+        }
+
+        @keyframes vintage-caret-blink {
+          0%,
+          49% {
+            opacity: 1;
+          }
+
+          50%,
+          100% {
+            opacity: 0;
+          }
+        }
+      `}</style>
+    </>
+  );
+}
+
 export function ReviewCard({ word }: ReviewCardProps) {
-  return <WordCard word={word} className="shadow-[0_18px_40px_rgba(102,8,116,0.08)]" />;
+  return <WordCard word={word} variant="browse" className="shadow-[0_18px_40px_rgba(102,8,116,0.08)]" />;
 }
 
 export function AttitudeScreen({
@@ -136,37 +177,66 @@ export function AttitudeScreen({
 
 export function MeaningScreen({
   word,
-  options,
-  onSelect,
+  value,
+  error,
+  isSubmitting,
+  onChange,
+  onSubmit,
   onForget,
   onSkip,
 }: {
   word: WordRecord;
-  options: MeaningOption[];
-  onSelect: (meaning: MeaningOption) => void;
+  value: string;
+  error: string;
+  isSubmitting: boolean;
+  onChange: (value: string) => void;
+  onSubmit: () => void;
   onForget: () => void;
   onSkip: () => void;
 }) {
+  const hiddenInputRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    hiddenInputRef.current?.focus();
+  }, []);
+
   return (
     <div className="flex flex-1 flex-col gap-4">
-      <ReviewStagePanel title="判断词意" actions={<ReviewAuxActions onForget={onForget} onSkip={onSkip} />}>
+      <ReviewStagePanel title="输入你理解的词义" actions={<ReviewAuxActions onForget={onForget} onSkip={onSkip} />}>
         <span />
       </ReviewStagePanel>
 
+      <input
+        ref={hiddenInputRef}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="pointer-events-none absolute opacity-0"
+        autoCorrect="off"
+        spellCheck={false}
+        aria-hidden="true"
+        tabIndex={-1}
+      />
+
       <ReviewSpellHero word={word} />
 
-      <div className="flex flex-col gap-3 pb-2">
-        {options.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            onClick={() => onSelect(option)}
-            className="w-full rounded-[1.6rem] border border-[#eee3f3] bg-[linear-gradient(180deg,rgba(255,255,255,0.98)_0%,rgba(250,245,252,0.95)_100%)] px-5 py-4 text-left shadow-sm transition hover:-translate-y-0.5"
-          >
-            <div className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#8c6594]">{option.partOfSpeech || "词义"}</div>
-            <div className="mt-2 text-base font-semibold leading-7 text-neutral-900">{option.text}</div>
-          </button>
-        ))}
+      <div className="space-y-3 pb-2">
+        <VintageMeaningInput value={value} onFocus={() => hiddenInputRef.current?.focus()} />
+
+        <div className="rounded-[1.5rem] border border-white/80 bg-white/85 px-4 py-3 text-sm leading-6 text-neutral-500 shadow-sm">
+          不用写得很标准，写出你心里的中文理解即可，AI 会按核心语义判定。
+        </div>
+
+        {error ? <div className="rounded-[1.4rem] bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div> : null}
+
+        <button
+          type="button"
+          onClick={onSubmit}
+          disabled={isSubmitting}
+          className="flex min-h-14 w-full items-center justify-center rounded-[1.5rem] px-5 text-base font-bold text-white shadow-[0_16px_30px_rgba(102,8,116,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
+          style={{ backgroundColor: APP_PURPLE }}
+        >
+          {isSubmitting ? "AI 判定中..." : "提交判定"}
+        </button>
       </div>
     </div>
   );

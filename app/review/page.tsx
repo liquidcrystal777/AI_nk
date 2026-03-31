@@ -13,11 +13,14 @@ export default function ReviewPage() {
     currentWord,
     stage,
     outcome,
-    meaningOptions,
+    meaningInput,
+    meaningError,
+    meaningSubmitting,
     handleAttitude,
     handleForget,
     handleSkip,
-    handleMeaning,
+    handleMeaningInputChange,
+    handleMeaningSubmit,
     handleNextWord,
   } = useReviewStage();
 
@@ -30,18 +33,35 @@ export default function ReviewPage() {
         ) : currentWord ? (
           <>
             {stage === "attitude" && (
-              <AttitudeScreen word={currentWord} onSelect={handleAttitude} onForget={handleForget} onSkip={handleSkip} />
-            )}
-            {stage === "meaning" && (
-              <MeaningScreen
+              <AttitudeScreen
+                key={`attitude-${currentWord.id ?? currentWord.spell}`}
                 word={currentWord}
-                options={meaningOptions}
-                onSelect={handleMeaning}
+                onSelect={handleAttitude}
                 onForget={handleForget}
                 onSkip={handleSkip}
               />
             )}
-            {stage === "card" && <CardResultScreen word={currentWord} outcome={outcome} onNext={handleNextWord} />}
+            {stage === "meaning" && (
+              <MeaningScreen
+                key={`meaning-${currentWord.id ?? currentWord.spell}`}
+                word={currentWord}
+                value={meaningInput}
+                error={meaningError}
+                isSubmitting={meaningSubmitting}
+                onChange={handleMeaningInputChange}
+                onSubmit={handleMeaningSubmit}
+                onForget={handleForget}
+                onSkip={handleSkip}
+              />
+            )}
+            {stage === "card" && (
+              <CardResultScreen
+                key={`card-${currentWord.id ?? currentWord.spell}`}
+                word={currentWord}
+                outcome={outcome}
+                onNext={handleNextWord}
+              />
+            )}
           </>
         ) : (
           <EmptyState title="当前没有待复习单词" description="你可以先录入新词，或稍后再回来复习。" />

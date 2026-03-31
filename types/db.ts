@@ -12,9 +12,6 @@ export type WordRecord = {
   spell: string;
   partOfSpeech: string;
   meaning: string;
-  confusingMeaning1: string;
-  confusingMeaning2: string;
-  confusingMeaning3: string;
   originalSentence: string;
   usageExplanation: string;
   sentiment: string;
@@ -31,9 +28,6 @@ export type RecordDraft = {
   spell: string;
   partOfSpeech: string;
   meaning: string;
-  confusingMeaning1: string;
-  confusingMeaning2: string;
-  confusingMeaning3: string;
   originalSentence: string;
   usageExplanation: string;
   sentiment: string;
