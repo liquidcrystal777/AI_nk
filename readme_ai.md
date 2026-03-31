@@ -84,20 +84,20 @@
 
 ## 现阶段需要牢记的用户约束
 
-### 1. 单词卡是 browse + review 共用组件
+### 1. 目前先只调整 browse，不联动 review/record
 
-用户明确要求：
+用户最新要求已经改成：
 
-- 以后提到“单词卡”，默认指 **browse 与 review 共用的同一个共享组件**
-- 这不是“样式参考”或“各写一份长得像的卡片”，而是**真正复用同一个实现**
-- browse / review 可以各自包裹不同的交互层，但**不能再各自维护一份独立卡片结构**
+- 这一轮**先只调整 browse 浏览界面**
+- review / record **暂时不要联动**
+- 用户会先看 browse 效果，再决定后面是否回流到复习/录入界面
 
-因此如果后续要改单词卡：
+因此当前实现策略应当是：
 
-- 优先修改共享 `WordCard` 组件本体
-- browse 侧只负责横滑、删除、展开等浏览行为
-- review 侧只负责阶段切换、结果面板、动作按钮等复习行为
-- 不要再在 browse/review 内复制一套新的卡片正文结构
+- browse 可以先使用自己的专属卡片组件
+- review 继续保持现有复习卡结构
+- record 页面不因为 browse 的试验性排版被牵连
+- 不要在用户没有再次确认前，主动把 browse 这套紧凑卡片推广成全局共享组件
 
 ### 2. 浏览页不要显示“易混淆含义”
 
@@ -373,31 +373,81 @@
 
 也就是说，原句现在只是帮助识别语境，不再充当主要记忆负担。
 
-### 5. 本轮 APK 为什么没有打包成功
+### 5. 本轮 APK 打包已修通（2026-03-31）
 
-这次 APK 没出包，**不是业务源码有问题**，而是 Android 本机构建环境没补齐。
+当前 APK 已经可以在本机打包成功，产物路径：
 
-已经实际验证过：
+- `android/app/build/outputs/apk/debug/app-debug.apk`
 
-- `next build`：通过
-- 定向 `eslint`：通过
-- `npx cap sync android`：通过
+这次真正踩到并已解决的问题有三类：
 
-说明：
+1. **Android SDK 指到了旧系统目录**
+   - 原来 `android/local.properties` 指向 `/usr/lib/android-sdk`
+   - 该目录缺少所需组件/许可证
+   - 现已改为：`sdk.dir=/home/liquidcrystal/Android/Sdk`
 
-- Web 端业务代码可以构建
-- Capacitor Android 工程也能同步静态资源
-- 真正失败点发生在 Android 原生构建阶段
+2. **JDK 17 不够，Android 构建链要求 Java 21**
+   - 现已验证可用 JDK：`/home/liquidcrystal/jdk-21.0.10+7`
+   - 如果用 JDK 17，会报：`invalid source release: 21`
 
-失败过程分两段：
+3. **Cordova 旧依赖带入废弃 Kotlin jdk7/jdk8 标准库，导致重复类冲突**
+   - 已在 `android/build.gradle` 的 `allprojects { configurations.configureEach { ... } }` 中全局排除：
+     - `org.jetbrains.kotlin:kotlin-stdlib-jdk7`
+     - `org.jetbrains.kotlin:kotlin-stdlib-jdk8`
+   - 否则会在 `checkDebugDuplicateClasses` 阶段失败
 
-#### 第一段失败：Gradle 联网下载失败
+### 6. 下次如何自己打包 APK
 
-最开始 `./gradlew assembleDebug` 会去下载 Gradle 发行包：
+前提：
 
-- `gradle-8.11.1-all.zip`
+- Android SDK 使用：`/home/liquidcrystal/Android/Sdk`
+- JDK 21 使用：`/home/liquidcrystal/jdk-21.0.10+7`
+- 项目根目录：`/home/liquidcrystal/Vocabulary2`
 
-但当前环境里 Java/Gradle 没自动走 Clash 代理，所以出现：
+#### 一条命令直接打 debug APK
+
+```bash
+export JAVA_HOME="/home/liquidcrystal/jdk-21.0.10+7"
+export PATH="$JAVA_HOME/bin:$PATH"
+cd "/home/liquidcrystal/Vocabulary2"
+npm run apk:debug
+```
+
+这条命令实际会执行：
+
+1. `npm run build`
+2. `npx cap sync android`
+3. `cd android && ./gradlew assembleDebug`
+
+#### 成功后 APK 位置
+
+```bash
+/home/liquidcrystal/Vocabulary2/android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+#### 如果想分步排查
+
+```bash
+export JAVA_HOME="/home/liquidcrystal/jdk-21.0.10+7"
+export PATH="$JAVA_HOME/bin:$PATH"
+cd "/home/liquidcrystal/Vocabulary2"
+npm run build
+npx cap sync android
+cd android
+./gradlew assembleDebug
+```
+
+#### 常见失败判断
+
+1. 报 `invalid source release: 21`
+   - 说明你没切到 JDK 21
+
+2. 报 Android SDK packages / licenses 缺失
+   - 先检查 `android/local.properties` 是否仍指向 `/home/liquidcrystal/Android/Sdk`
+   - 再去 Android Studio SDK Manager 补组件/许可证
+
+3. 报 Kotlin duplicate classes（`kotlin-stdlib-jdk7/jdk8`）
+   - 说明 `android/build.gradle` 里的全局排除被改没了，需要恢复
 
 - `UnknownHostException: github.com`
 
@@ -462,19 +512,66 @@
    - `npm run apk:debug`
 6. 成功后记录 APK 输出路径
 
-### 7. 提交时要注意哪些东西不要默认带上
+### 8. 浏览页卡片已切到 browse 专属实现（2026-03-31）
 
-本轮有几类文件是明显的“本机态/调试态”，不要默认一起提交：
+这一轮用户连续收紧了范围，最终落地的是一版**只服务 browse 页面**的专属卡片，而不是继续改共享 `WordCard`。
 
-- `android/gradle/wrapper/gradle-wrapper.properties` 中指向本地绝对路径的改动
-- `android/local.properties`
-- 根目录 `gradle-8.11.1-all.zip`
-- 各类截图、快照、调试日志文件
-- 若用户未明确要求，也不要默认把新增 PDF 真题素材一起提交
+当前状态：
 
-应优先提交的是：
+- 新增 `components/browse/browse-word-card.tsx`
+- `components/browse/word-list.tsx` 已改为接入 `BrowseWordCard`
+- review 结果卡仍走共享 `components/common/word-card.tsx`
+- record 页面未联动
 
-- 备份导入导出相关源码
-- 录入页与词卡收敛相关源码
-- AI prompt / parser / text 归一化源码
-- 本文档 `readme_ai.md`
+用户这轮的核心要求：
+
+- 卡片必须固定高度，适合手机一屏浏览
+- 先只看 browse 效果，review / record 后面再说
+- 删掉会占空间但当前不必要的信息和操作
+
+### 9. browse 页面当前交互与结构（2026-03-31）
+
+当前 browse 页实现重点：
+
+1. **搜索栏已压缩**
+   - `components/browse/browse-search-bar.tsx` 只保留关键词搜索框
+   - 年份筛选、文章筛选 UI 已删除
+
+2. **浏览方式改为纯横向滑动**
+   - `components/browse/word-list.tsx` 删除了左右切换按钮
+   - 现在只保留横向 scroll snap 滑动
+   - 卡片宽度已拉宽到接近容器满宽（当前项约 `w-[94%]`）
+
+3. **browse 卡片信息架构已收紧**
+   - Header：单词 + 词性 + 态度标签 + 删除按钮
+   - Body 第一块：`【释义】`
+   - Body 第二块：`【考点逻辑】`
+     - `1.原句:` + 原句内容（同行）
+     - `2.记忆词根:` + 记忆/词根内容（同行）
+     - `3.去味:` + 去味内容（同行）
+   - Footer 中的年份 / 来源已删除
+
+4. **删除交互仍保留，但做成卡片内联确认**
+   - 点击删除后，在卡片内部显示确认区
+   - 支持取消与确认删除
+   - 删除后列表会自动刷新
+
+5. **这轮目标是做减法，不做通用抽象**
+   - 当前不要急着把 browse 这套结构抽回共享层
+   - 先把手机浏览体验做顺
+   - 后续是否让 review / record 跟进，必须等用户再次确认
+
+### 10. 本轮验证结果
+
+本轮 browse 改动已验证：
+
+- `npm run build`：通过
+- `/browse` 正常生成
+- `/record`、`/review`、`/settings` 未因 browse 专属卡片改动而被破坏
+
+如果后续继续改 browse，优先原则仍然是：
+
+- 保持固定高度
+- 保持手机优先
+- 优先删减而不是加信息
+- 不主动联动 review / record
