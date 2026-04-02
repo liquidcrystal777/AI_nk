@@ -8,17 +8,14 @@ export type CardType = "normal" | "phrase" | "rare_meaning" | "comparison";
 
 export type ComparisonWordInfo = {
   spell: string;
-  partOfSpeech: string;
   meaning: string;
-  usageExplanation: string;
   keyDifference: string;
+  collocation: string;
 };
 
 export type ComparisonContent = {
   wordA: ComparisonWordInfo;
   wordB: ComparisonWordInfo;
-  commonContext: string;
-  contrastSummary: string;
 };
 
 export type SettingsRecord = {

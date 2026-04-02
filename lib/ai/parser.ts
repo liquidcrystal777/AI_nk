@@ -224,9 +224,8 @@ export function parseRareMeaningDraft(
 function assertComparisonWordInfo(payload: Record<string, unknown>): ComparisonWordInfo {
   return {
     spell: formatWordSpell(payload.spell) || "",
-    partOfSpeech: normalizePartOfSpeech(payload.partOfSpeech) || "",
     meaning: normalizeSingleLineText(payload.meaning) || "",
-    usageExplanation: normalizeSingleLineText(payload.usageExplanation) || "",
+    collocation: normalizeSingleLineText(payload.collocation) || "",
     keyDifference: normalizeSingleLineText(payload.keyDifference) || "",
   };
 }
@@ -234,18 +233,14 @@ function assertComparisonWordInfo(payload: Record<string, unknown>): ComparisonW
 function assertComparisonDraftPayload(payload: Record<string, unknown>): ComparisonContent {
   const wordA = assertComparisonWordInfo(payload.wordA as Record<string, unknown> || {});
   const wordB = assertComparisonWordInfo(payload.wordB as Record<string, unknown> || {});
-  const commonContext = normalizeSingleLineText(payload.commonContext) || "";
-  const contrastSummary = normalizeSingleLineText(payload.contrastSummary) || "";
 
-  if (!wordA.spell || !wordB.spell || !contrastSummary) {
+  if (!wordA.spell || !wordB.spell) {
     throw new Error("AI 返回的对比辨析 JSON 字段不完整，请重试。");
   }
 
   return {
     wordA,
     wordB,
-    commonContext,
-    contrastSummary,
   };
 }
 

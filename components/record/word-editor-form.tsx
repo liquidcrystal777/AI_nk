@@ -298,23 +298,12 @@ function RareMeaningCardEditor({ draft, onFieldChange }: { draft: RecordDraft; o
 function ComparisonCardEditor({ draft, onFieldChange }: { draft: RecordDraft; onFieldChange: <K extends keyof RecordDraft>(key: K, value: RecordDraft[K]) => void }) {
   const comparisonData = draft.comparisonData;
 
-  const updateComparisonField = (field: keyof ComparisonContent, value: string) => {
-    onFieldChange("comparisonData", {
-      wordA: comparisonData?.wordA ?? { spell: "", partOfSpeech: "", meaning: "", usageExplanation: "", keyDifference: "" },
-      wordB: comparisonData?.wordB ?? { spell: "", partOfSpeech: "", meaning: "", usageExplanation: "", keyDifference: "" },
-      commonContext: comparisonData?.commonContext ?? "",
-      contrastSummary: comparisonData?.contrastSummary ?? "",
-      [field]: value,
-    });
-  };
+  const defaultWord = { spell: "", meaning: "", collocation: "", keyDifference: "" };
 
   const updateWordField = (wordKey: "wordA" | "wordB", field: string, value: string) => {
-    const defaultWord = { spell: "", partOfSpeech: "", meaning: "", usageExplanation: "", keyDifference: "" };
     onFieldChange("comparisonData", {
       wordA: comparisonData?.wordA ?? defaultWord,
       wordB: comparisonData?.wordB ?? defaultWord,
-      commonContext: comparisonData?.commonContext ?? "",
-      contrastSummary: comparisonData?.contrastSummary ?? "",
       [wordKey]: {
         ...(comparisonData?.[wordKey] ?? defaultWord),
         [field]: value,
@@ -323,90 +312,61 @@ function ComparisonCardEditor({ draft, onFieldChange }: { draft: RecordDraft; on
   };
 
   return (
-    <>
-      <SectionCard title="对比概览" description="两个易混淆单词的辨析">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <SectionCard title={`单词 A: ${comparisonData?.wordA?.spell || ""}`}>
         <EditorSection
-          label="核心差异"
-          value={comparisonData?.contrastSummary || ""}
-          placeholder="一句话辨析总结"
-          onChange={(value) => updateComparisonField("contrastSummary", value)}
+          label="拼写"
+          value={comparisonData?.wordA?.spell || ""}
+          placeholder="单词A"
+          onChange={(value) => updateWordField("wordA", "spell", value)}
         />
         <EditorSection
-          label="易混场景"
-          value={comparisonData?.commonContext || ""}
-          placeholder="两词共同出现的典型场景"
-          onChange={(value) => updateComparisonField("commonContext", value)}
+          label="释义"
+          value={comparisonData?.wordA?.meaning || ""}
+          placeholder="核心释义"
+          onChange={(value) => updateWordField("wordA", "meaning", value)}
+        />
+        <EditorSection
+          label="关键搭配"
+          value={comparisonData?.wordA?.collocation || ""}
+          placeholder="如 后面跟抽象名词"
+          onChange={(value) => updateWordField("wordA", "collocation", value)}
+        />
+        <EditorSection
+          label="差异点"
+          value={comparisonData?.wordA?.keyDifference || ""}
+          placeholder="该词的独特之处"
+          onChange={(value) => updateWordField("wordA", "keyDifference", value)}
         />
       </SectionCard>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <SectionCard title={`单词 A: ${comparisonData?.wordA?.spell || ""}`}>
-          <EditorSection
-            label="拼写"
-            value={comparisonData?.wordA?.spell || ""}
-            placeholder="单词A"
-            onChange={(value) => updateWordField("wordA", "spell", value)}
-          />
-          <EditorSection
-            label="词性"
-            value={comparisonData?.wordA?.partOfSpeech || ""}
-            placeholder="如 n. / v."
-            onChange={(value) => updateWordField("wordA", "partOfSpeech", value)}
-          />
-          <EditorSection
-            label="释义"
-            value={comparisonData?.wordA?.meaning || ""}
-            placeholder="核心释义"
-            onChange={(value) => updateWordField("wordA", "meaning", value)}
-          />
-          <EditorSection
-            label="核心差异"
-            value={comparisonData?.wordA?.keyDifference || ""}
-            placeholder="该词的独特之处"
-            onChange={(value) => updateWordField("wordA", "keyDifference", value)}
-          />
-          <EditorSection
-            label="记忆抓手"
-            value={comparisonData?.wordA?.usageExplanation || ""}
-            placeholder="帮助记忆的方法"
-            onChange={(value) => updateWordField("wordA", "usageExplanation", value)}
-          />
-        </SectionCard>
-
-        <SectionCard title={`单词 B: ${comparisonData?.wordB?.spell || ""}`}>
-          <EditorSection
-            label="拼写"
-            value={comparisonData?.wordB?.spell || ""}
-            placeholder="单词B"
-            onChange={(value) => updateWordField("wordB", "spell", value)}
-          />
-          <EditorSection
-            label="词性"
-            value={comparisonData?.wordB?.partOfSpeech || ""}
-            placeholder="如 n. / v."
-            onChange={(value) => updateWordField("wordB", "partOfSpeech", value)}
-          />
-          <EditorSection
-            label="释义"
-            value={comparisonData?.wordB?.meaning || ""}
-            placeholder="核心释义"
-            onChange={(value) => updateWordField("wordB", "meaning", value)}
-          />
-          <EditorSection
-            label="核心差异"
-            value={comparisonData?.wordB?.keyDifference || ""}
-            placeholder="该词的独特之处"
-            onChange={(value) => updateWordField("wordB", "keyDifference", value)}
-          />
-          <EditorSection
-            label="记忆抓手"
-            value={comparisonData?.wordB?.usageExplanation || ""}
-            placeholder="帮助记忆的方法"
-            onChange={(value) => updateWordField("wordB", "usageExplanation", value)}
-          />
-        </SectionCard>
-      </div>
-    </>
+      <SectionCard title={`单词 B: ${comparisonData?.wordB?.spell || ""}`}>
+        <EditorSection
+          label="拼写"
+          value={comparisonData?.wordB?.spell || ""}
+          placeholder="单词B"
+          onChange={(value) => updateWordField("wordB", "spell", value)}
+        />
+        <EditorSection
+          label="释义"
+          value={comparisonData?.wordB?.meaning || ""}
+          placeholder="核心释义"
+          onChange={(value) => updateWordField("wordB", "meaning", value)}
+        />
+        <EditorSection
+          label="关键搭配"
+          value={comparisonData?.wordB?.collocation || ""}
+          placeholder="如 后面跟具体名词"
+          onChange={(value) => updateWordField("wordB", "collocation", value)}
+        />
+        <EditorSection
+          label="差异点"
+          value={comparisonData?.wordB?.keyDifference || ""}
+          placeholder="该词的独特之处"
+          onChange={(value) => updateWordField("wordB", "keyDifference", value)}
+        />
+      </SectionCard>
+    </div>
   );
 }
 

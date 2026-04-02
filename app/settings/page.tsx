@@ -8,7 +8,7 @@ import { createBackupFile, downloadBackupFile, getImportModeLabel, parseBackupFi
 import { importBackupPayload, saveSettings as persistSettings } from "@/lib/db/mutations";
 import { getBackupPayload } from "@/lib/db/queries";
 import { useSettings } from "@/lib/hooks/use-settings";
-import type { ImportMode, SettingsRecord } from "@/types/db";
+import type { ImportMode, SettingsRecord, ThemeMode } from "@/types/db";
 
 export default function SettingsPage() {
   const { settings } = useSettings();
@@ -23,6 +23,14 @@ export default function SettingsPage() {
 
   function updateField(key: keyof Omit<SettingsRecord, "id">, value: string) {
     setDraft((prev) => ({ ...prev, [key]: value }));
+
+    // 主题切换立即预览生效
+    if (key === "theme") {
+      const themeProvider = document.querySelector("[data-theme]");
+      if (themeProvider) {
+        themeProvider.setAttribute("data-theme", value as ThemeMode);
+      }
+    }
   }
 
   async function handleSave() {

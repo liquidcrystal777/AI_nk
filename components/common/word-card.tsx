@@ -37,8 +37,13 @@ function normalizeSentiment(sentiment: string) {
   return "中性";
 }
 
-function FocusLabel({ children }: { children: ReactNode }) {
-  return <div className="font-latex text-sm font-bold tracking-tight text-[var(--card-label-color)]">【{children}】</div>;
+function FocusLabel({ children, suffix }: { children: ReactNode; suffix?: ReactNode }) {
+  return (
+    <div className="flex items-center gap-3">
+      <div className="font-latex text-sm font-bold tracking-tight text-[var(--card-label-color)]">【{children}】</div>
+      {suffix ? <div className="text-sm font-medium text-[var(--card-text-muted)]">{suffix}</div> : null}
+    </div>
+  );
 }
 
 function InlineLabel({ children }: { children: ReactNode }) {
@@ -69,7 +74,7 @@ function renderPhraseContent(word: WordRecord) {
   return (
     <>
       <div className="space-y-2.5">
-        <FocusLabel>释义</FocusLabel>
+        <FocusLabel suffix={word.partOfSpeech}>释义</FocusLabel>
         <p className="text-[15px] font-semibold leading-[1.8] tracking-[-0.01em] text-[var(--card-text)]">
           {word.meaning || "暂无释义"}
         </p>
@@ -115,7 +120,7 @@ function renderRareMeaningContent(word: WordRecord) {
   return (
     <>
       <div className="space-y-2.5">
-        <FocusLabel>熟义 / 僻义</FocusLabel>
+        <FocusLabel suffix={word.partOfSpeech}>熟义 / 僻义</FocusLabel>
         <div className="grid grid-cols-2 gap-3">
           <div className="rounded-lg bg-[var(--card-rare-meaning-common-bg)] p-3">
             <div className="text-xs text-[var(--card-text-muted)]">熟义</div>
@@ -218,49 +223,48 @@ function renderComparisonContent(data: ComparisonContent) {
   return (
     <>
       <div className="space-y-2.5">
-        <FocusLabel>核心差异</FocusLabel>
-        <p className="text-[15px] font-semibold leading-[1.8] text-[var(--card-text)]">{data.contrastSummary}</p>
+        <FocusLabel>辨析对比</FocusLabel>
+        <div className="flex gap-6 py-2">
+          {/* 左侧：单词A */}
+          <div className="flex-1 space-y-1.5">
+            <span className="text-xl font-bold text-[var(--card-comparison-word-a)]">{data.wordA.spell}</span>
+            <p className="text-[15px] font-medium leading-[1.7] text-[var(--card-text)]">{data.wordA.meaning}</p>
+            <p className="text-sm text-[var(--card-text-muted)]">
+              <span className="font-medium text-[var(--card-label-color)]">差异点：</span>
+              {data.wordA.keyDifference}
+            </p>
+          </div>
+
+          {/* 中间分隔线 */}
+          <div className="flex flex-col items-center justify-center">
+            <div className="min-h-[4rem] w-px bg-[var(--card-comparison-divider)]" />
+          </div>
+
+          {/* 右侧：单词B */}
+          <div className="flex-1 space-y-1.5">
+            <span className="text-xl font-bold text-[var(--card-comparison-word-b)]">{data.wordB.spell}</span>
+            <p className="text-[15px] font-medium leading-[1.7] text-[var(--card-text)]">{data.wordB.meaning}</p>
+            <p className="text-sm text-[var(--card-text-muted)]">
+              <span className="font-medium text-[var(--card-label-color)]">差异点：</span>
+              {data.wordB.keyDifference}
+            </p>
+          </div>
+        </div>
       </div>
 
       <div className="space-y-2.5">
-        <FocusLabel>辨析对比</FocusLabel>
-        <div className="grid grid-cols-2 divide-x divide-[var(--card-comparison-divider)] rounded-lg border border-[var(--card-border)] bg-[var(--card-surface)]">
-          {/* 左栏：单词A */}
-          <div className="space-y-2 p-4">
-            <div className="text-xl font-bold text-[var(--card-comparison-word-a)]">{data.wordA.spell}</div>
-            <div className="text-sm text-[var(--card-text-muted)]">{data.wordA.partOfSpeech}</div>
-            <div className="mt-2 font-medium text-[var(--card-text)]">{data.wordA.meaning}</div>
-            <div className="mt-2 rounded bg-[var(--card-tag-bg)] p-2 text-sm">
-              <span className="font-medium text-[var(--card-label-color)]">核心差异：</span>
-              <span className="text-[var(--card-text)]">{data.wordA.keyDifference}</span>
-            </div>
-            {data.wordA.usageExplanation ? (
-              <div className="text-xs text-[var(--card-text-muted)]">{data.wordA.usageExplanation}</div>
-            ) : null}
-          </div>
-
-          {/* 右栏：单词B */}
-          <div className="space-y-2 p-4">
-            <div className="text-xl font-bold text-[var(--card-comparison-word-b)]">{data.wordB.spell}</div>
-            <div className="text-sm text-[var(--card-text-muted)]">{data.wordB.partOfSpeech}</div>
-            <div className="mt-2 font-medium text-[var(--card-text)]">{data.wordB.meaning}</div>
-            <div className="mt-2 rounded bg-[var(--card-tag-bg)] p-2 text-sm">
-              <span className="font-medium text-[var(--card-label-color)]">核心差异：</span>
-              <span className="text-[var(--card-text)]">{data.wordB.keyDifference}</span>
-            </div>
-            {data.wordB.usageExplanation ? (
-              <div className="text-xs text-[var(--card-text-muted)]">{data.wordB.usageExplanation}</div>
-            ) : null}
-          </div>
+        <FocusLabel>关键搭配</FocusLabel>
+        <div className="space-y-1.5 text-[15px]">
+          <p className="text-[var(--card-text)]">
+            <span className="font-semibold text-[var(--card-comparison-word-a)]">{data.wordA.spell}</span>
+            <span className="text-[var(--card-text-muted)]">：{data.wordA.collocation || "暂无"}</span>
+          </p>
+          <p className="text-[var(--card-text)]">
+            <span className="font-semibold text-[var(--card-comparison-word-b)]">{data.wordB.spell}</span>
+            <span className="text-[var(--card-text-muted)]">：{data.wordB.collocation || "暂无"}</span>
+          </p>
         </div>
       </div>
-
-      {data.commonContext ? (
-        <div className="space-y-2.5">
-          <FocusLabel>易混场景</FocusLabel>
-          <p className="text-[15px] leading-[1.8] text-[var(--card-text)]">{data.commonContext}</p>
-        </div>
-      ) : null}
     </>
   );
 }
@@ -284,18 +288,14 @@ export function WordCard({
   const isPhrase = cardType === "phrase";
   const isRareMeaning = cardType === "rare_meaning";
 
-  // Determine header styles based on variant and card type
-  const headerStyle = isComparison
-    ? { background: "var(--card-header-bg)" }
-    : isBrowseVariant
-      ? { background: "var(--card-browse-header-bg)", borderColor: "var(--card-browse-header-border)" }
-      : { background: "var(--card-header-bg)" };
+  // 统一 header 样式
+  const headerStyle = isBrowseVariant
+    ? { background: "var(--card-browse-header-bg)", borderColor: "var(--card-browse-header-border)" }
+    : { background: "var(--card-header-bg)" };
 
-  const headerTextStyle = isComparison
-    ? { color: "var(--card-header-text)" }
-    : isBrowseVariant
-      ? { color: "var(--card-browse-header-text)" }
-      : { color: "var(--card-header-text)" };
+  const headerTextStyle = isBrowseVariant
+    ? { color: "var(--card-browse-header-text)" }
+    : { color: "var(--card-header-text)" };
 
   return (
     <SectionCard className={[
@@ -317,27 +317,22 @@ export function WordCard({
                 >
                   {displaySpell}
                 </div>
-                {isComparison ? (
-                  <span className="rounded-full bg-white/20 px-2 py-0.5 text-xs font-medium" style={{ color: "var(--card-header-text)" }}>对比记忆</span>
-                ) : isRareMeaning ? (
+                {isRareMeaning ? (
                   <span className="rounded-full bg-amber-500/80 px-2 py-0.5 text-xs font-medium text-amber-50">熟词僻义</span>
                 ) : isPhrase ? (
                   <span className="rounded-full bg-sky-500/80 px-2 py-0.5 text-xs font-medium text-sky-50">词组</span>
                 ) : null}
-                {word.partOfSpeech && !isBrowseVariant && !isComparison ? (
+                {word.partOfSpeech && !isBrowseVariant ? (
                   <div className="font-serif text-lg" style={{ color: "var(--card-header-text)", opacity: 0.9 }}>{word.partOfSpeech}</div>
                 ) : null}
               </div>
-              {sourceLabel && !isBrowseVariant && !isComparison ? (
+              {sourceLabel && !isBrowseVariant ? (
                 <div className="mt-2 text-sm" style={{ color: "var(--card-header-text)", opacity: 0.8 }}>{sourceLabel}</div>
               ) : null}
             </div>
 
             <div className="flex shrink-0 flex-col items-end gap-2">
-              {word.partOfSpeech && !isBrowseVariant && !isComparison ? (
-                <div className="font-serif text-lg" style={{ color: "var(--card-header-text)", opacity: 0.9 }}>{word.partOfSpeech}</div>
-              ) : null}
-              {!isBrowseVariant && !isComparison ? (
+              {!isBrowseVariant ? (
                 <span
                   className="rounded-md px-2 py-1 text-xs font-semibold"
                   style={{ border: "1px solid rgba(255,255,255,0.3)", color: "var(--card-header-text)", opacity: 0.95 }}
@@ -373,7 +368,7 @@ export function WordCard({
             ) : (
               <>
                 <div className="space-y-2.5">
-                  <FocusLabel>{isBrowseVariant ? "释义" : "极简释义"}</FocusLabel>
+                  <FocusLabel suffix={word.partOfSpeech}>{isBrowseVariant ? "释义" : "极简释义"}</FocusLabel>
                   <p
                     className={[
                       "text-[15px] font-semibold leading-[1.8] tracking-[-0.01em] text-[var(--card-text)]",

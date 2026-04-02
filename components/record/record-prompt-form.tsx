@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import type { CardType, RecordDraft, RecordMode } from "@/types/db";
 
 const SOURCE_TEXT_OPTIONS = ["TEXT1", "TEXT2", "TEXT3", "TEXT4"] as const;
@@ -143,61 +143,145 @@ function ComparisonInput({
   onChangeA: (value: string) => void;
   onChangeB: (value: string) => void;
 }) {
-  const inputRefA = useRef<HTMLInputElement | null>(null);
-  const inputRefB = useRef<HTMLInputElement | null>(null);
+  const [editingA, setEditingA] = useState(false);
+  const [editingB, setEditingB] = useState(false);
+  const [tempA, setTempA] = useState("");
+  const [tempB, setTempB] = useState("");
+
+  const handleStartA = () => {
+    setTempA(valueA);
+    setEditingA(true);
+  };
+
+  const handleStartB = () => {
+    setTempB(valueB);
+    setEditingB(true);
+  };
+
+  const handleConfirmA = () => {
+    if (tempA.trim()) {
+      onChangeA(tempA.trim());
+    }
+    setEditingA(false);
+  };
+
+  const handleConfirmB = () => {
+    if (tempB.trim()) {
+      onChangeB(tempB.trim());
+    }
+    setEditingB(false);
+  };
+
+  const handleCancelA = () => {
+    setEditingA(false);
+  };
+
+  const handleCancelB = () => {
+    setEditingB(false);
+  };
 
   return (
-    <div className="flex items-center justify-center gap-4">
-      {/* 隐藏输入框：使用 visibility:hidden 保持可聚焦，但视觉不可见 */}
-      <input
-        ref={inputRefA}
-        value={valueA}
-        onChange={(e) => onChangeA(e.target.value)}
-        className="absolute opacity-0"
-        style={{ visibility: "hidden" }}
-        autoCapitalize="none"
-        autoCorrect="off"
-        spellCheck={false}
-        tabIndex={0}
-      />
-      <input
-        ref={inputRefB}
-        value={valueB}
-        onChange={(e) => onChangeB(e.target.value)}
-        className="absolute opacity-0"
-        style={{ visibility: "hidden" }}
-        autoCapitalize="none"
-        autoCorrect="off"
-        spellCheck={false}
-        tabIndex={0}
-      />
-      <button
-        type="button"
-        onClick={() => inputRefA.current?.focus()}
-        className="min-h-[3.5rem] min-w-[8rem] rounded-[1.5rem] px-4 text-center text-lg font-semibold shadow-[0_12px_28px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
-        style={{
-          borderColor: valueA ? "var(--theme-accent-strong)" : "var(--theme-accent-soft)",
-          backgroundColor: valueA ? "var(--theme-accent-muted)" : "var(--theme-accent-faint)",
-          color: "var(--theme-accent-strong)",
-          border: "1px solid",
-        }}
-      >
-        {valueA || "单词A"}
-      </button>
-      <span className="text-lg font-bold" style={{ color: "var(--theme-accent-strong)" }}>vs</span>
-      <button
-        type="button"
-        onClick={() => inputRefB.current?.focus()}
-        className="min-h-[3.5rem] min-w-[8rem] rounded-[1.5rem] px-4 text-center text-lg font-semibold shadow-[0_12px_28px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
-        style={{
-          borderColor: valueB ? "var(--theme-accent-strong)" : "var(--theme-accent-soft)",
-          backgroundColor: valueB ? "var(--theme-accent-muted)" : "var(--theme-accent-faint)",
-          color: "var(--theme-accent-strong)",
-          border: "1px solid",
-        }}
-      >
-        {valueB || "单词B"}
-      </button>
+    <div className="flex flex-col items-center gap-4">
+      {/* 单词 A */}
+      {editingA ? (
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={tempA}
+            onChange={(e) => setTempA(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleConfirmA();
+              if (e.key === "Escape") handleCancelA();
+            }}
+            autoFocus
+            placeholder="输入单词A"
+            className="min-h-[3.5rem] min-w-[10rem] rounded-[1.5rem] px-4 text-center text-lg font-semibold outline-none ring-2 ring-[var(--theme-accent-strong)]"
+            style={{
+              backgroundColor: "var(--card-bg)",
+              color: "var(--theme-accent-strong)",
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleConfirmA}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold shadow-sm transition"
+            style={{
+              backgroundColor: "var(--theme-accent-strong)",
+              color: "#fff",
+            }}
+          >
+            ✓
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleStartA}
+          className="min-h-[3.5rem] min-w-[10rem] rounded-[1.5rem] px-4 text-center text-lg font-semibold shadow-[0_12px_28px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
+          style={{
+            borderColor: valueA ? "var(--theme-accent-strong)" : "var(--theme-accent-soft)",
+            backgroundColor: valueA ? "var(--theme-accent-muted)" : "var(--theme-accent-faint)",
+            color: "var(--theme-accent-strong)",
+            border: "1px solid",
+          }}
+        >
+          {valueA || "单词A"}
+        </button>
+      )}
+
+      {/* vs 分隔 */}
+      <div className="flex items-center gap-3">
+        <div className="h-px w-8 bg-[var(--theme-accent-soft)]" />
+        <span className="text-base font-bold" style={{ color: "var(--theme-accent-strong)" }}>vs</span>
+        <div className="h-px w-8 bg-[var(--theme-accent-soft)]" />
+      </div>
+
+      {/* 单词 B */}
+      {editingB ? (
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={tempB}
+            onChange={(e) => setTempB(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleConfirmB();
+              if (e.key === "Escape") handleCancelB();
+            }}
+            autoFocus
+            placeholder="输入单词B"
+            className="min-h-[3.5rem] min-w-[10rem] rounded-[1.5rem] px-4 text-center text-lg font-semibold outline-none ring-2 ring-[var(--theme-accent-strong)]"
+            style={{
+              backgroundColor: "var(--card-bg)",
+              color: "var(--theme-accent-strong)",
+            }}
+          />
+          <button
+            type="button"
+            onClick={handleConfirmB}
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold shadow-sm transition"
+            style={{
+              backgroundColor: "var(--theme-accent-strong)",
+              color: "#fff",
+            }}
+          >
+            ✓
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={handleStartB}
+          className="min-h-[3.5rem] min-w-[10rem] rounded-[1.5rem] px-4 text-center text-lg font-semibold shadow-[0_12px_28px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
+          style={{
+            borderColor: valueB ? "var(--theme-accent-strong)" : "var(--theme-accent-soft)",
+            backgroundColor: valueB ? "var(--theme-accent-muted)" : "var(--theme-accent-faint)",
+            color: "var(--theme-accent-strong)",
+            border: "1px solid",
+          }}
+        >
+          {valueB || "单词B"}
+        </button>
+      )}
     </div>
   );
 }

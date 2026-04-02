@@ -106,43 +106,16 @@ export function BrowseWordCard({
               borderTop: "1px solid var(--browse-footer-border)",
             }}
           >
-            <div className="flex min-w-0 max-w-[50%] items-center gap-2">
-              <div
-                className="truncate rounded-lg px-3 py-1.5 text-sm font-semibold tracking-[0.01em] shadow-sm"
-                style={{
-                  backgroundColor: "var(--browse-tag-bg)",
-                  border: "1px solid var(--browse-tag-border)",
-                  color: "var(--browse-tag-text)",
-                }}
-              >
-                {word.partOfSpeech || "暂无词性"}
-              </div>
-              {cardTypeLabel ? (
-                <span
-                  className="shrink-0 rounded-lg px-2 py-0.5 text-xs font-semibold shadow-sm"
-                  style={{
-                    backgroundColor: "var(--browse-tag-bg)",
-                    border: "1px solid var(--browse-tag-border)",
-                    color: "var(--browse-tag-text)",
-                  }}
-                >
-                  {cardTypeLabel}
-                </span>
-              ) : null}
-            </div>
-
-            <div className="flex shrink-0 items-center justify-center">
-              <span
-                className="rounded-lg px-3 py-1.5 text-sm font-semibold tracking-[0.01em] shadow-sm"
-                style={{
-                  backgroundColor: "var(--browse-tag-bg)",
-                  border: "1px solid var(--browse-tag-border)",
-                  color: "var(--browse-tag-text)",
-                }}
-              >
-                {sentimentLabel}
-              </span>
-            </div>
+            <span
+              className="rounded-lg px-3 py-1.5 text-sm font-semibold tracking-[0.01em] shadow-sm"
+              style={{
+                backgroundColor: "var(--browse-tag-bg)",
+                border: "1px solid var(--browse-tag-border)",
+                color: "var(--browse-tag-text)",
+              }}
+            >
+              {sentimentLabel}
+            </span>
 
             <button
               type="button"
