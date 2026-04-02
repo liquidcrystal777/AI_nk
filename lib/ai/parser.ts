@@ -28,16 +28,20 @@ function assertWordDraftPayload(payload: Record<string, unknown>, mode: RecordDr
   const deodorizedMeaning = normalizeMultilineTextWithLimit(payload.deodorizedMeaning, 2);
   const effectiveSentence = mode === "general" ? representativeSentence || originalSentence : originalSentence;
 
-  // 新字段优先，但向后兼容旧的usageExplanation
-  const hasNewMemoryFields = rootMemory || associationMemory;
+  // 新字段优先，但向后兼容旧的 usageExplanation
+  // 如果新字段为空，尝试从旧字段迁移
   const finalRootMemory = rootMemory || undefined;
   const finalAssociationMemory = associationMemory || undefined;
 
-  // 如果没有新的记忆字段，但有usageExplanation，作为备用
-  const memoryAvailable = hasNewMemoryFields || usageExplanation;
+  // 验证必要字段
+  if (!spell || !partOfSpeech || !meaning || !effectiveSentence || !sentiment || !deodorizedMeaning) {
+    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、原文/代表句、态度、去味。");
+  }
 
-  if (!spell || !partOfSpeech || !meaning || !effectiveSentence || !memoryAvailable || !sentiment || !deodorizedMeaning) {
-    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、原文/代表句、记忆方式、态度、去味。");
+  // 新数据必须有两个记忆字段，旧数据可以只有 usageExplanation
+  const hasNewMemoryFields = rootMemory || associationMemory;
+  if (!hasNewMemoryFields && !usageExplanation) {
+    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含记忆内容（词根记忆和联想记忆）。");
   }
 
   return {

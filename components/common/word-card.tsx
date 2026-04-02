@@ -157,6 +157,63 @@ function renderRareMeaningContent(word: WordRecord) {
   );
 }
 
+// 获取记忆内容：分别显示词根记忆和联想记忆
+function renderMemorySection(word: WordRecord) {
+  const hasRootMemory = word.rootMemory && word.rootMemory !== "无明确词根" && word.rootMemory !== "「无明确词根」";
+  const hasAssociationMemory = word.associationMemory && word.associationMemory.trim();
+
+  if (!hasRootMemory && !hasAssociationMemory) {
+    // fallback 到旧字段
+    if (word.usageExplanation) {
+      return (
+        <div className="space-y-1.5">
+          <p className="text-[15px] font-medium leading-[1.8] tracking-[-0.01em] text-[var(--card-text)]">{word.usageExplanation}</p>
+        </div>
+      );
+    }
+    return <p className="text-[var(--card-text-muted)]">暂无记忆内容</p>;
+  }
+
+  return (
+    <div className="space-y-2">
+      {hasRootMemory ? (
+        <div className="rounded-lg bg-[var(--card-tag-bg)] px-3 py-2">
+          <span className="text-xs font-semibold text-[var(--card-label-color)]">词根：</span>
+          <span className="text-[15px] text-[var(--card-text)]">{word.rootMemory}</span>
+        </div>
+      ) : null}
+      {hasAssociationMemory ? (
+        <div className="rounded-lg bg-[var(--card-tag-bg)] px-3 py-2">
+          <span className="text-xs font-semibold text-[var(--card-label-color)]">联想：</span>
+          <span className="text-[15px] text-[var(--card-text)]">{word.associationMemory}</span>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+// 获取记忆内容文本（用于浏览模式的紧凑显示）
+function getMemoryContent(word: WordRecord) {
+  const parts: string[] = [];
+
+  const hasRootMemory = word.rootMemory && word.rootMemory !== "无明确词根" && word.rootMemory !== "「无明确词根」";
+  const hasAssociationMemory = word.associationMemory && word.associationMemory.trim();
+
+  if (hasRootMemory) {
+    parts.push(`词根：${word.rootMemory}`);
+  }
+  if (hasAssociationMemory) {
+    parts.push(`联想：${word.associationMemory}`);
+  }
+
+  if (parts.length > 0) {
+    return parts.join("；");
+  }
+
+  // fallback 到旧字段
+  return word.usageExplanation || "";
+}
+
 function renderComparisonContent(data: ComparisonContent) {
   return (
     <>
@@ -337,8 +394,8 @@ export function WordCard({
                         <span className="font-serif italic tracking-wide">{word.originalSentence || "暂无原句"}</span>
                       </p>
                       <p>
-                        <InlineLabel>2.记忆词根：</InlineLabel>
-                        <span>{word.usageExplanation || "暂无记忆/词根"}</span>
+                        <InlineLabel>2.记忆：</InlineLabel>
+                        <span>{getMemoryContent(word) || "暂无记忆"}</span>
                       </p>
                       <p>
                         <InlineLabel>3.去味：</InlineLabel>
@@ -366,13 +423,8 @@ export function WordCard({
 
                 {!isBrowseVariant ? (
                   <div className="space-y-3">
-                    <FocusLabel>辅助记忆</FocusLabel>
-
-                    <div className="space-y-1.5">
-                      <InlineLabel>记忆 / 词根</InlineLabel>
-                      <p className="text-[15px] font-medium leading-[1.8] tracking-[-0.01em] text-[var(--card-text)]">{word.usageExplanation || "暂无记忆/词根"}</p>
-                    </div>
-
+                    <FocusLabel>记忆</FocusLabel>
+                    {renderMemorySection(word)}
                     <div className="space-y-1.5">
                       <InlineLabel>最短语境</InlineLabel>
                       <p className="font-serif text-[15px] font-medium leading-[1.8] italic tracking-wide text-[var(--card-text)]">{word.originalSentence || "暂无原文"}</p>
