@@ -79,11 +79,6 @@ export function useReviewStage() {
     revealCard("fail");
   }, [currentWord, revealCard]);
 
-  const handleSkip = useCallback(() => {
-    if (!currentWord) return;
-    revealCard("skip");
-  }, [currentWord, revealCard]);
-
   const handleMeaningInputChange = useCallback((value: string) => {
     setMeaningInput(value);
     if (meaningError) {
@@ -147,7 +142,6 @@ export function useReviewStage() {
     meaningSubmitting,
     handleAttitude,
     handleForget,
-    handleSkip,
     handleMeaningInputChange,
     handleMeaningSubmit,
     handleNextWord,

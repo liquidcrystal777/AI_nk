@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { Minus, Circle, Plus, ArrowRight, Diamond, CheckCircle2, SkipForward, XCircle } from "lucide-react";
+import { Minus, Circle, Plus, ArrowRight, Diamond, CheckCircle2, XCircle } from "lucide-react";
 import { WordCard } from "@/components/common/word-card";
-import { APP_PURPLE } from "@/lib/utils/constants";
 import type { ReviewOutcome } from "@/lib/hooks/use-review-stage";
 import type { WordRecord } from "@/types/db";
 import type { ReviewAction } from "@/types/review";
@@ -14,24 +13,20 @@ type ReviewCardProps = {
 
 type ReviewAuxActionsProps = {
   onForget: () => void;
-  onSkip: () => void;
 };
 
-function ReviewAuxActions({ onForget, onSkip }: ReviewAuxActionsProps) {
+function ReviewAuxActions({ onForget }: ReviewAuxActionsProps) {
   return (
     <div className="flex items-center gap-2">
       <button
         type="button"
-        onClick={onSkip}
-        className="flex items-center gap-1 rounded-full border border-[#eadcf0] bg-white/90 px-3 py-1.5 text-xs font-medium text-neutral-500 shadow-sm"
-      >
-        <SkipForward size={12} />
-        跳过
-      </button>
-      <button
-        type="button"
         onClick={onForget}
-        className="flex items-center gap-1 rounded-full border border-[#eadcf0] bg-white/90 px-3 py-1.5 text-xs font-medium text-neutral-500 shadow-sm"
+        className="flex items-center gap-1 rounded-full px-3 py-1.5 text-xs font-medium shadow-sm"
+        style={{
+          backgroundColor: "var(--review-btn-bg)",
+          border: "1px solid var(--review-btn-border)",
+          color: "var(--review-panel-text)",
+        }}
       >
         <Diamond size={12} />
         遗忘
@@ -46,16 +41,8 @@ function getOutcomeMeta(outcome: ReviewOutcome) {
       label: "回答正确",
       icon: CheckCircle2,
       textClassName: "text-emerald-600",
-      panelClassName: "border-emerald-100 bg-emerald-50/78",
-    };
-  }
-
-  if (outcome === "skip") {
-    return {
-      label: "本词已跳过",
-      icon: SkipForward,
-      textClassName: "text-amber-600",
-      panelClassName: "border-amber-100 bg-amber-50/80",
+      panelBg: "rgba(209, 250, 229, 0.78)",
+      panelBorder: "rgba(16, 185, 129, 0.25)",
     };
   }
 
@@ -63,14 +50,21 @@ function getOutcomeMeta(outcome: ReviewOutcome) {
     label: "回答错误",
     icon: XCircle,
     textClassName: "text-rose-500",
-    panelClassName: "border-rose-100 bg-rose-50/78",
+    panelBg: "rgba(254, 242, 242, 0.78)",
+    panelBorder: "rgba(251, 113, 133, 0.25)",
   };
 }
 
 function ReviewStagePanel({ title, children, actions }: { title: string; children: React.ReactNode; actions: React.ReactNode }) {
   return (
-    <div className="flex items-center justify-between rounded-[1.75rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(250,244,255,0.92)_100%)] px-4 py-3 shadow-sm backdrop-blur-sm">
-      <span className="text-sm font-semibold tracking-[0.04em] text-neutral-500">{title}</span>
+    <div
+      className="flex items-center justify-between rounded-[1.75rem] px-4 py-3 shadow-sm backdrop-blur-sm"
+      style={{
+        background: "var(--review-panel-bg)",
+        border: "1px solid var(--review-panel-border)",
+      }}
+    >
+      <span className="text-sm font-semibold tracking-[0.04em]" style={{ color: "var(--review-panel-text)" }}>{title}</span>
       {actions}
     </div>
   );
@@ -78,10 +72,16 @@ function ReviewStagePanel({ title, children, actions }: { title: string; childre
 
 function ReviewSpellHero({ word }: { word: WordRecord }) {
   return (
-    <div className="flex flex-1 items-center justify-center rounded-[2rem] border border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(247,239,251,0.92)_100%)] px-6 py-10 text-center shadow-[0_16px_36px_rgba(102,8,116,0.07)] backdrop-blur-sm">
+    <div
+      className="flex flex-1 items-center justify-center rounded-[2rem] px-6 py-10 text-center shadow-[0_16px_36px_rgba(102,8,116,0.07)] backdrop-blur-sm"
+      style={{
+        background: "var(--review-hero-bg)",
+        border: "1px solid var(--review-hero-border)",
+      }}
+    >
       <div>
-        <div className="text-5xl font-black tracking-[-0.03em] text-[#2d1634] sm:text-6xl">{word.spell}</div>
-        {word.partOfSpeech ? <div className="mt-3 text-sm font-medium tracking-[0.08em] text-neutral-400">{word.partOfSpeech}</div> : null}
+        <div className="text-5xl font-black tracking-[-0.03em] sm:text-6xl" style={{ color: "var(--review-hero-text)" }}>{word.spell}</div>
+        {word.partOfSpeech ? <div className="mt-3 text-sm font-medium tracking-[0.08em]" style={{ color: "var(--review-hero-pos)" }}>{word.partOfSpeech}</div> : null}
       </div>
     </div>
   );
@@ -95,14 +95,14 @@ function VintageMeaningInput({ value, onFocus }: { value: string; onFocus: () =>
         onClick={onFocus}
         className="flex min-h-[11.5rem] w-full items-center justify-center rounded-[2rem] border px-6 text-center shadow-[0_18px_40px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
         style={{
-          borderColor: "rgba(102,8,116,0.18)",
-          backgroundColor: "rgba(102,8,116,0.06)",
+          borderColor: "var(--theme-accent-soft)",
+          backgroundColor: "var(--theme-accent-faint)",
         }}
         aria-label="输入词义"
       >
-        <div className="font-mono text-[1.45rem] font-semibold tracking-[0.08em] text-[#660874] sm:text-[1.75rem]">
+        <div className="font-mono text-[1.45rem] font-semibold tracking-[0.08em] text-[var(--foreground)] sm:text-[1.75rem]">
           <span>{value || ""}</span>
-          <span className="ml-1 inline-block vintage-caret">|</span>
+          <span className="ml-1 inline-block text-[var(--theme-accent-strong)] vintage-caret">|</span>
         </div>
       </button>
 
@@ -135,16 +135,14 @@ export function AttitudeScreen({
   word,
   onSelect,
   onForget,
-  onSkip,
 }: {
   word: WordRecord;
   onSelect: (attitude: "+" | "O" | "-") => void;
   onForget: () => void;
-  onSkip: () => void;
 }) {
   return (
     <div className="flex flex-1 flex-col gap-4">
-      <ReviewStagePanel title="判断正负态度" actions={<ReviewAuxActions onForget={onForget} onSkip={onSkip} />}>
+      <ReviewStagePanel title="判断正负态度" actions={<ReviewAuxActions onForget={onForget} />}>
         <span />
       </ReviewStagePanel>
 
@@ -162,9 +160,20 @@ export function AttitudeScreen({
             key={value}
             type="button"
             onClick={() => onSelect(value)}
-            className="flex flex-col items-center gap-2 rounded-[1.7rem] border border-[#eee3f3] bg-[linear-gradient(180deg,rgba(255,255,255,0.97)_0%,rgba(250,245,252,0.95)_100%)] py-5 text-sm font-medium text-neutral-700 shadow-sm transition hover:-translate-y-0.5"
+            className="flex flex-col items-center gap-2 rounded-[1.7rem] py-5 text-sm font-medium shadow-sm transition hover:-translate-y-0.5"
+            style={{
+              background: "var(--review-action-bg)",
+              border: "1px solid var(--review-action-border)",
+              color: "var(--review-btn-label)",
+            }}
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[rgba(102,8,116,0.08)] text-[#660874]">
+            <span
+              className="flex h-11 w-11 items-center justify-center rounded-full"
+              style={{
+                backgroundColor: "var(--review-action-icon-bg)",
+                color: "var(--review-btn-text)",
+              }}
+            >
               <Icon size={20} />
             </span>
             <span>{label}</span>
@@ -183,7 +192,6 @@ export function MeaningScreen({
   onChange,
   onSubmit,
   onForget,
-  onSkip,
 }: {
   word: WordRecord;
   value: string;
@@ -192,7 +200,6 @@ export function MeaningScreen({
   onChange: (value: string) => void;
   onSubmit: () => void;
   onForget: () => void;
-  onSkip: () => void;
 }) {
   const hiddenInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -202,7 +209,7 @@ export function MeaningScreen({
 
   return (
     <div className="flex flex-1 flex-col gap-4">
-      <ReviewStagePanel title="输入你理解的词义" actions={<ReviewAuxActions onForget={onForget} onSkip={onSkip} />}>
+      <ReviewStagePanel title="输入你理解的词义" actions={<ReviewAuxActions onForget={onForget} />}>
         <span />
       </ReviewStagePanel>
 
@@ -222,18 +229,35 @@ export function MeaningScreen({
       <div className="space-y-3 pb-2">
         <VintageMeaningInput value={value} onFocus={() => hiddenInputRef.current?.focus()} />
 
-        <div className="rounded-[1.5rem] border border-white/80 bg-white/85 px-4 py-3 text-sm leading-6 text-neutral-500 shadow-sm">
+        <div
+          className="rounded-[1.5rem] px-4 py-3 text-sm leading-6 shadow-sm"
+          style={{
+            backgroundColor: "var(--panel-bg)",
+            border: "1px solid var(--panel-border)",
+            color: "var(--muted-foreground)",
+          }}
+        >
           不用写得很标准，写出你心里的中文理解即可，AI 会按核心语义判定。
         </div>
 
-        {error ? <div className="rounded-[1.4rem] bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div> : null}
+        {error ? (
+          <div
+            className="rounded-[1.4rem] px-4 py-3 text-sm"
+            style={{
+              backgroundColor: "rgba(254, 242, 242, 0.9)",
+              color: "#dc2626",
+            }}
+          >
+            {error}
+          </div>
+        ) : null}
 
         <button
           type="button"
           onClick={onSubmit}
           disabled={isSubmitting}
           className="flex min-h-14 w-full items-center justify-center rounded-[1.5rem] px-5 text-base font-bold text-white shadow-[0_16px_30px_rgba(102,8,116,0.18)] disabled:cursor-not-allowed disabled:opacity-60"
-          style={{ backgroundColor: APP_PURPLE }}
+          style={{ backgroundColor: "var(--theme-accent-strong)" }}
         >
           {isSubmitting ? "AI 判定中..." : "提交判定"}
         </button>
@@ -258,9 +282,15 @@ export function CardResultScreen({
     <div className="flex flex-1 flex-col gap-4">
       <ReviewCard word={word} />
 
-      <div className={`flex items-center justify-between rounded-[1.6rem] border px-5 py-4 shadow-sm ${meta.panelClassName}`}>
+      <div
+        className="flex items-center justify-between rounded-[1.6rem] px-5 py-4 shadow-sm"
+        style={{
+          backgroundColor: meta.panelBg,
+          border: `1px solid ${meta.panelBorder}`,
+        }}
+      >
         <div className="flex items-center gap-2 text-sm font-semibold">
-          <span className="text-neutral-500">测试结果：</span>
+          <span style={{ color: "var(--review-panel-text)" }}>测试结果：</span>
           <span className={`flex items-center gap-2 text-base font-black ${meta.textClassName}`}>
             <Icon size={18} />
             {meta.label}
@@ -270,7 +300,7 @@ export function CardResultScreen({
           type="button"
           onClick={onNext}
           className="flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold text-white shadow-sm"
-          style={{ backgroundColor: APP_PURPLE }}
+          style={{ backgroundColor: "var(--theme-accent-strong)" }}
         >
           下一词
           <ArrowRight size={16} />
@@ -284,20 +314,27 @@ const actions: Array<{ action: ReviewAction; label: string; icon: typeof Minus }
   { action: "fail", label: "不认识", icon: Minus },
   { action: "again", label: "模糊", icon: Circle },
   { action: "success", label: "认识", icon: Plus },
-  { action: "skip", label: "跳过", icon: ArrowRight },
 ];
 
 export function ReviewActions({ onAction }: { onAction: (action: ReviewAction) => void }) {
   return (
-    <div className="grid grid-cols-4 gap-3">
+    <div className="grid grid-cols-3 gap-3">
       {actions.map(({ action, label, icon: Icon }) => (
         <button
           key={action}
           type="button"
           onClick={() => onAction(action)}
-          className="flex flex-col items-center gap-2 rounded-3xl border border-neutral-200 bg-white px-3 py-4 text-sm font-medium text-neutral-800 shadow-sm"
+          className="flex flex-col items-center gap-2 rounded-3xl px-3 py-4 text-sm font-medium shadow-sm"
+          style={{
+            backgroundColor: "var(--review-action-bg)",
+            border: "1px solid var(--review-action-border)",
+            color: "var(--review-action-text)",
+          }}
         >
-          <span className="flex h-11 w-11 items-center justify-center rounded-full bg-neutral-100">
+          <span
+            className="flex h-11 w-11 items-center justify-center rounded-full"
+            style={{ backgroundColor: "var(--review-action-icon-bg)" }}
+          >
             <Icon size={18} />
           </span>
           <span>{label}</span>

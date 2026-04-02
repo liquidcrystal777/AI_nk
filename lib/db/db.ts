@@ -41,7 +41,14 @@ async function ensureSettingsRecord(transaction: Transaction) {
 
   if (!current) {
     await settingsTable.put(DEFAULT_SETTINGS);
+    return;
   }
+
+  await settingsTable.put({
+    ...DEFAULT_SETTINGS,
+    ...current,
+    id: SETTINGS_ID,
+  });
 }
 
 export class VocabularyDatabase extends Dexie {
@@ -122,6 +129,34 @@ export class VocabularyDatabase extends Dexie {
       })
       .upgrade(async (transaction) => {
         await ensureSettingsRecord(transaction);
+      });
+
+    this.version(6)
+      .stores({
+        settings: "id",
+        words:
+          "++id, spell, partOfSpeech, sentiment, status, year, sourceTextId, nextReviewTime, [year+sourceTextId], [status+nextReviewTime]",
+      })
+      .upgrade(async (transaction) => {
+        await ensureSettingsRecord(transaction);
+      });
+
+    this.version(7)
+      .stores({
+        settings: "id",
+        words:
+          "++id, spell, partOfSpeech, sentiment, status, cardType, excludeFromReview, year, sourceTextId, nextReviewTime, [year+sourceTextId], [status+nextReviewTime], [cardType+excludeFromReview]",
+      })
+      .upgrade(async (transaction) => {
+        await ensureSettingsRecord(transaction);
+
+        await transaction
+          .table("words")
+          .toCollection()
+          .modify((word: WordRecord) => {
+            word.cardType = "normal";
+            word.excludeFromReview = false;
+          });
       });
   }
 }

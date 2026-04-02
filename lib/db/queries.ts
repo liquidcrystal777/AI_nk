@@ -1,7 +1,15 @@
 import { liveQuery } from "dexie";
 import { db } from "@/lib/db/db";
 import { DEFAULT_AI_MODEL_NAME, DEFAULT_SETTINGS, SETTINGS_ID } from "@/lib/utils/constants";
-import type { BackupPayload, BrowseFilters, SettingsRecord, WordRecord } from "@/types/db";
+import { normalizeSingleLineText } from "@/lib/utils/text";
+import type { BackupPayload, BrowseFilters, SettingsRecord, WordRecord, WordStatus } from "@/types/db";
+
+const WORD_STATUS_PRIORITY: Record<WordStatus, number> = {
+  new: 0,
+  vague: 1,
+  known: 2,
+  mastered: 3,
+};
 
 function resolveSettings(settings?: Partial<SettingsRecord>): SettingsRecord {
   return {
@@ -11,7 +19,27 @@ function resolveSettings(settings?: Partial<SettingsRecord>): SettingsRecord {
     aiApiKey: settings?.aiApiKey?.trim() ?? DEFAULT_SETTINGS.aiApiKey,
     aiBaseUrl: settings?.aiBaseUrl?.trim() ?? DEFAULT_SETTINGS.aiBaseUrl,
     aiModelName: settings?.aiModelName?.trim() || DEFAULT_AI_MODEL_NAME,
+    theme: normalizeSingleLineText(settings?.theme || DEFAULT_SETTINGS.theme) === "dark" ? "dark" : DEFAULT_SETTINGS.theme,
   };
+}
+
+function compareBrowseWords(a: WordRecord, b: WordRecord) {
+  const statusDiff = WORD_STATUS_PRIORITY[a.status] - WORD_STATUS_PRIORITY[b.status];
+  if (statusDiff !== 0) {
+    return statusDiff;
+  }
+
+  const nextReviewDiff = a.nextReviewTime - b.nextReviewTime;
+  if (nextReviewDiff !== 0) {
+    return nextReviewDiff;
+  }
+
+  const reviewCountDiff = a.reviewCount - b.reviewCount;
+  if (reviewCountDiff !== 0) {
+    return reviewCountDiff;
+  }
+
+  return a.spell.localeCompare(b.spell);
 }
 
 export async function getSettings(): Promise<SettingsRecord> {
@@ -28,11 +56,16 @@ export async function getWordCount() {
 }
 
 export async function getDueCount(now = Date.now()) {
-  return db.words.where("nextReviewTime").belowOrEqual(now).count();
+  const count = await db.words
+    .where("nextReviewTime")
+    .belowOrEqual(now)
+    .filter((word) => !word.excludeFromReview)
+    .count();
+  return count;
 }
 
 export async function getBrowseWords(filters: BrowseFilters): Promise<WordRecord[]> {
-  let words = await db.words.orderBy("spell").toArray();
+  let words = await db.words.toArray();
 
   if (filters.year) {
     words = words.filter((word) => word.year === filters.year);
@@ -45,22 +78,11 @@ export async function getBrowseWords(filters: BrowseFilters): Promise<WordRecord
   if (filters.keyword) {
     const keyword = filters.keyword.toLowerCase();
     words = words.filter((word) => {
-      return [
-        word.spell,
-        word.partOfSpeech,
-        word.meaning,
-        word.originalSentence,
-        word.usageExplanation,
-        word.sentiment,
-        word.deodorizedMeaning,
-      ]
-        .join(" ")
-        .toLowerCase()
-        .includes(keyword);
+      return word.spell.toLowerCase().includes(keyword);
     });
   }
 
-  return words;
+  return words.sort(compareBrowseWords);
 }
 
 export async function getBrowseFilterOptions() {
@@ -74,7 +96,11 @@ export async function getBrowseFilterOptions() {
 }
 
 export async function getNextReviewWords(now = Date.now(), limit = 20) {
-  const dueWords = await db.words.where("nextReviewTime").belowOrEqual(now).sortBy("nextReviewTime");
+  const dueWords = await db.words
+    .where("nextReviewTime")
+    .belowOrEqual(now)
+    .filter((word) => !word.excludeFromReview)
+    .sortBy("nextReviewTime");
   return dueWords.slice(0, limit);
 }
 

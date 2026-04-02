@@ -8,7 +8,10 @@ type AppShellProps = {
 
 export function AppShell({ children }: AppShellProps) {
   return (
-    <div className="mx-auto flex min-h-screen w-full max-w-md flex-col overflow-hidden bg-[linear-gradient(180deg,#fcfbff_0%,#f7f3fb_100%)] shadow-[0_20px_60px_rgba(15,23,42,0.16)]">
+    <div
+      className="mx-auto flex min-h-dvh w-full max-w-md flex-col overflow-hidden border-t border-[var(--shell-border)] bg-[var(--shell-bg)] shadow-[var(--shell-shadow)] backdrop-blur-2xl transition-colors"
+      style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
+    >
       {children}
     </div>
   );

@@ -30,6 +30,7 @@ export default function SettingsPage() {
       aiApiKey: draft.aiApiKey,
       aiBaseUrl: draft.aiBaseUrl,
       aiModelName: draft.aiModelName,
+      theme: draft.theme,
     });
     setMessage("已保存到本地数据库");
   }
@@ -63,8 +64,8 @@ export default function SettingsPage() {
   return (
     <AppShell>
       <TopBar title="设置" showBack backHref="/" />
-      <main className="flex flex-1 flex-col gap-4 bg-[linear-gradient(180deg,#fbf8ff_0%,#ffffff_38%)] px-4 py-4">
-        <div className="rounded-[1.8rem] border border-white/70 bg-white/76 p-1 shadow-sm backdrop-blur-sm">
+      <main className="flex flex-1 flex-col gap-4 bg-[var(--page-surface)] px-4 py-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] text-[var(--foreground)]">
+        <div className="rounded-[1.8rem] border border-[var(--panel-border)] bg-[var(--panel-bg)] p-1 shadow-[var(--panel-shadow)] backdrop-blur-sm">
           <SettingsForm
             settings={draft}
             importMode={importMode}
@@ -76,7 +77,11 @@ export default function SettingsPage() {
             onImportFileChange={handleImportFile}
           />
         </div>
-        {message ? <div className="rounded-[1.4rem] border border-emerald-100 bg-emerald-50 px-4 py-3 text-sm text-emerald-700 shadow-sm">{message}</div> : null}
+        {message ? (
+          <div className="rounded-[1.4rem] border border-[var(--theme-accent-soft)] bg-[var(--theme-accent-muted)] px-4 py-3 text-sm text-[var(--theme-accent-strong)] shadow-sm">
+            {message}
+          </div>
+        ) : null}
       </main>
     </AppShell>
   );

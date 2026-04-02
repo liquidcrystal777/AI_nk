@@ -13,6 +13,7 @@ export default function RecordPage() {
   const { settings } = useSettings();
   const { step, draft, error, isGenerating, isSaving, canGenerate, updateField, generate, save } =
     useRecordDraft(settings);
+  const hasAiSettings = Boolean(settings.aiApiKey && settings.aiModelName);
 
   async function handleConfirm() {
     if (step === "input") {
@@ -22,7 +23,7 @@ export default function RecordPage() {
 
     const ok = await save();
     if (ok) {
-      router.push("/");
+      router.replace("/");
     }
   }
 
@@ -34,9 +35,10 @@ export default function RecordPage() {
         backHref="/"
         onConfirm={handleConfirm}
         confirmDisabled={step === "input" ? !canGenerate || isGenerating : isSaving}
+        confirmLoading={step === "input" ? isGenerating : isSaving}
         showSettings={step !== "input"}
       />
-      <main className="flex flex-1 flex-col px-4 pb-6 pt-5">
+      <main className="flex flex-1 flex-col px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1.5rem)] pt-5">
         <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col">
           {step === "input" ? (
             <RecordPromptForm
@@ -44,6 +46,7 @@ export default function RecordPage() {
               error={error}
               isGenerating={isGenerating}
               canGenerate={canGenerate}
+              hasAiSettings={hasAiSettings}
               onFieldChange={updateField}
               onGenerate={generate}
             />

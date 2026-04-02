@@ -15,7 +15,7 @@ export default function BrowsePage() {
   return (
     <AppShell>
       <TopBar title="浏览词库" showBack backHref="/" />
-      <main className="flex flex-1 flex-col gap-3 bg-[linear-gradient(180deg,#faf5ff_0%,#ffffff_42%)] py-3">
+      <main className="flex flex-1 flex-col gap-3 bg-[linear-gradient(180deg,#faf5ff_0%,#ffffff_42%)] px-0 py-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]">
         <div className="px-3">
           <BrowseSearchBar filters={filters} onChange={setFilters} />
         </div>

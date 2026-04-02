@@ -32,11 +32,6 @@ export function useReviewQueue() {
         return;
       }
 
-      if (action === "skip") {
-        setQueue((prev) => [...prev.slice(1), prev[0]].filter(Boolean) as WordRecord[]);
-        return;
-      }
-
       await applyReviewAction(currentWord.id!, action);
       await refresh();
     },

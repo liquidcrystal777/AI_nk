@@ -17,6 +17,7 @@ function normalizeBackupSettings(settings: SettingsRecord | null | undefined): S
     aiApiKey: normalizeSingleLineText(settings.aiApiKey),
     aiBaseUrl: normalizeSingleLineText(settings.aiBaseUrl),
     aiModelName: normalizeSingleLineText(settings.aiModelName),
+    theme: normalizeSingleLineText(settings.theme) === "dark" ? "dark" : "light",
   };
 }
 
@@ -26,20 +27,31 @@ export function normalizeBackupWord(word: WordRecord): Omit<WordRecord, "id"> {
   const lastReviewTime = Number.isFinite(word.lastReviewTime) ? Number(word.lastReviewTime) : undefined;
   const status = WORD_STATUS_VALUES.has(word.status) ? word.status : "new";
 
+  const cardType = word.cardType || "normal";
+  const excludeFromReview = word.excludeFromReview || false;
+
   return {
     spell: normalizeSingleLineText(word.spell),
     partOfSpeech: normalizeSingleLineText(word.partOfSpeech),
     meaning: normalizeSingleLineText(word.meaning),
     originalSentence: normalizeMultilineText(word.originalSentence),
+    representativeSentence: normalizeMultilineText(word.representativeSentence ?? ""),
     usageExplanation: normalizeMultilineText(word.usageExplanation),
     sentiment: normalizeSingleLineText(word.sentiment),
     deodorizedMeaning: normalizeMultilineText(word.deodorizedMeaning),
     year: normalizeSingleLineText(word.year),
     sourceTextId: normalizeSingleLineText(word.sourceTextId),
+    mode: word.mode === "general" ? "general" : "reading",
     status,
     reviewCount,
     lastReviewTime,
     nextReviewTime,
+    cardType,
+    excludeFromReview,
+    comparisonData: word.comparisonData,
+    structureAnalysis: word.structureAnalysis ? normalizeMultilineText(word.structureAnalysis) : undefined,
+    collocationTrap: word.collocationTrap ? normalizeMultilineText(word.collocationTrap) : undefined,
+    typicalContext: word.typicalContext ? normalizeMultilineText(word.typicalContext) : undefined,
   };
 }
 

@@ -5,33 +5,48 @@ import {
   normalizeSingleLineText,
   takeFirstLine,
 } from "@/lib/utils/text";
-import type { AiMeaningJudgementPayload } from "@/types/ai";
-import type { RecordDraft } from "@/types/db";
+import type { AiComparisonDraftPayload, AiMeaningJudgementPayload, AiPhraseDraftPayload, AiRareMeaningDraftPayload } from "@/types/ai";
+import type { ComparisonContent, ComparisonWordInfo, CardType, RecordDraft } from "@/types/db";
 
 function extractJsonString(input: string) {
   const match = input.match(/\{[\s\S]*\}/);
   return match?.[0] ?? input;
 }
 
-function assertWordDraftPayload(payload: Record<string, unknown>) {
+function assertWordDraftPayload(payload: Record<string, unknown>, mode: RecordDraft["mode"]) {
   const spell = formatWordSpell(payload.spell);
   const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
   const meaning = normalizeCompactChineseList(payload.meaning);
   const originalSentence = takeFirstLine(payload.originalSentence);
+  const representativeSentence = takeFirstLine(payload.representativeSentence);
   const usageExplanation = takeFirstLine(payload.usageExplanation);
+  const rootMemory = takeFirstLine(payload.rootMemory);
+  const associationMemory = takeFirstLine(payload.associationMemory);
   const sentiment = normalizeSingleLineText(payload.sentiment);
   const deodorizedMeaning = normalizeMultilineTextWithLimit(payload.deodorizedMeaning, 2);
+  const effectiveSentence = mode === "general" ? representativeSentence || originalSentence : originalSentence;
 
-  if (!spell || !partOfSpeech || !meaning || !originalSentence || !usageExplanation || !sentiment || !deodorizedMeaning) {
-    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、原文、记忆/词根、态度、去味。");
+  // 新字段优先，但向后兼容旧的usageExplanation
+  const hasNewMemoryFields = rootMemory || associationMemory;
+  const finalRootMemory = rootMemory || undefined;
+  const finalAssociationMemory = associationMemory || undefined;
+
+  // 如果没有新的记忆字段，但有usageExplanation，作为备用
+  const memoryAvailable = hasNewMemoryFields || usageExplanation;
+
+  if (!spell || !partOfSpeech || !meaning || !effectiveSentence || !memoryAvailable || !sentiment || !deodorizedMeaning) {
+    throw new Error("AI 返回的 JSON 字段不完整，请重试。必须包含单词、词性、极简释义、原文/代表句、记忆方式、态度、去味。");
   }
 
   return {
     spell,
     partOfSpeech,
     meaning,
-    originalSentence,
-    usageExplanation,
+    originalSentence: effectiveSentence,
+    representativeSentence: mode === "general" ? effectiveSentence : representativeSentence,
+    usageExplanation: usageExplanation || "",
+    rootMemory: finalRootMemory,
+    associationMemory: finalAssociationMemory,
     sentiment,
     deodorizedMeaning,
   };
@@ -79,14 +94,175 @@ function assertMeaningJudgementPayload(payload: Record<string, unknown>) {
   } as const satisfies Required<AiMeaningJudgementPayload>;
 }
 
-export function parseWordDraft(input: unknown, context: Pick<RecordDraft, "year" | "sourceTextId">): RecordDraft {
+export function parseWordDraft(
+  input: unknown,
+  context: Pick<RecordDraft, "year" | "sourceTextId" | "mode">
+): RecordDraft {
   const payload = parseJsonObject(input);
-  const normalized = assertWordDraftPayload(payload);
+  const normalized = assertWordDraftPayload(payload, context.mode);
 
   return {
     ...normalized,
     year: context.year,
     sourceTextId: context.sourceTextId,
+    mode: context.mode,
+    cardType: "normal",
+    excludeFromReview: false,
+  };
+}
+
+function assertPhraseDraftPayload(payload: Record<string, unknown>) {
+  const spell = normalizeSingleLineText(payload.spell);
+  const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
+  const meaning = normalizeCompactChineseList(payload.meaning);
+  const originalSentence = takeFirstLine(payload.originalSentence);
+  const structureAnalysis = normalizeSingleLineText(payload.structureAnalysis);
+  const collocationTrap = normalizeSingleLineText(payload.collocationTrap);
+  const typicalContext = normalizeSingleLineText(payload.typicalContext);
+  const sentiment = normalizeSingleLineText(payload.sentiment);
+
+  if (!spell || !partOfSpeech || !meaning || !structureAnalysis) {
+    throw new Error("AI 返回的词组 JSON 字段不完整，请重试。");
+  }
+
+  return {
+    spell,
+    partOfSpeech,
+    meaning,
+    originalSentence,
+    structureAnalysis,
+    collocationTrap,
+    typicalContext,
+    sentiment,
+  };
+}
+
+export function parsePhraseDraft(
+  input: unknown,
+  context: Pick<RecordDraft, "year" | "sourceTextId" | "mode">
+): RecordDraft {
+  const payload = parseJsonObject(input);
+  const normalized = assertPhraseDraftPayload(payload);
+
+  return {
+    spell: normalized.spell,
+    partOfSpeech: normalized.partOfSpeech,
+    meaning: normalized.meaning,
+    originalSentence: normalized.originalSentence || "",
+    representativeSentence: "",
+    usageExplanation: normalized.structureAnalysis,
+    sentiment: normalized.sentiment || "[中性]",
+    deodorizedMeaning: normalized.collocationTrap || "",
+    year: context.year,
+    sourceTextId: context.sourceTextId,
+    mode: context.mode,
+    cardType: "phrase",
+    excludeFromReview: false,
+    structureAnalysis: normalized.structureAnalysis,
+    collocationTrap: normalized.collocationTrap,
+    typicalContext: normalized.typicalContext,
+  };
+}
+
+function assertRareMeaningDraftPayload(payload: Record<string, unknown>) {
+  const spell = formatWordSpell(payload.spell);
+  const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
+  const meaning = normalizeSingleLineText(payload.meaning);
+  const originalSentence = takeFirstLine(payload.originalSentence);
+  const usageExplanation = takeFirstLine(payload.usageExplanation);
+  const sentiment = normalizeSingleLineText(payload.sentiment);
+  const rareMeaningAnalysis = normalizeMultilineTextWithLimit(payload.rareMeaningAnalysis, 2);
+
+  if (!spell || !partOfSpeech || !meaning || !originalSentence || !rareMeaningAnalysis) {
+    throw new Error("AI 返回的熟词僻义 JSON 字段不完整，请重试。");
+  }
+
+  return {
+    spell,
+    partOfSpeech,
+    meaning,
+    originalSentence,
+    usageExplanation,
+    sentiment,
+    rareMeaningAnalysis,
+  };
+}
+
+export function parseRareMeaningDraft(
+  input: unknown,
+  context: Pick<RecordDraft, "year" | "sourceTextId" | "mode">
+): RecordDraft {
+  const payload = parseJsonObject(input);
+  const normalized = assertRareMeaningDraftPayload(payload);
+
+  return {
+    spell: normalized.spell,
+    partOfSpeech: normalized.partOfSpeech,
+    meaning: normalized.meaning,
+    originalSentence: normalized.originalSentence,
+    representativeSentence: "",
+    usageExplanation: normalized.usageExplanation || "",
+    sentiment: normalized.sentiment || "[中性]",
+    deodorizedMeaning: normalized.rareMeaningAnalysis,
+    year: context.year,
+    sourceTextId: context.sourceTextId,
+    mode: context.mode,
+    cardType: "rare_meaning",
+    excludeFromReview: false,
+  };
+}
+
+function assertComparisonWordInfo(payload: Record<string, unknown>): ComparisonWordInfo {
+  return {
+    spell: formatWordSpell(payload.spell) || "",
+    partOfSpeech: normalizeSingleLineText(payload.partOfSpeech) || "",
+    meaning: normalizeSingleLineText(payload.meaning) || "",
+    usageExplanation: normalizeSingleLineText(payload.usageExplanation) || "",
+    keyDifference: normalizeSingleLineText(payload.keyDifference) || "",
+  };
+}
+
+function assertComparisonDraftPayload(payload: Record<string, unknown>): ComparisonContent {
+  const wordA = assertComparisonWordInfo(payload.wordA as Record<string, unknown> || {});
+  const wordB = assertComparisonWordInfo(payload.wordB as Record<string, unknown> || {});
+  const commonContext = normalizeSingleLineText(payload.commonContext) || "";
+  const contrastSummary = normalizeSingleLineText(payload.contrastSummary) || "";
+
+  if (!wordA.spell || !wordB.spell || !contrastSummary) {
+    throw new Error("AI 返回的对比辨析 JSON 字段不完整，请重试。");
+  }
+
+  return {
+    wordA,
+    wordB,
+    commonContext,
+    contrastSummary,
+  };
+}
+
+export function parseComparisonDraft(
+  input: unknown,
+  wordA: string,
+  wordB: string
+): RecordDraft {
+  const payload = parseJsonObject(input);
+  const comparisonData = assertComparisonDraftPayload(payload);
+
+  return {
+    spell: `${wordA} vs ${wordB}`,
+    partOfSpeech: "",
+    meaning: "",
+    originalSentence: "",
+    representativeSentence: "",
+    usageExplanation: "",
+    sentiment: "[中性]",
+    deodorizedMeaning: "",
+    year: "",
+    sourceTextId: "",
+    mode: "general",
+    cardType: "comparison",
+    excludeFromReview: true,
+    comparisonData,
   };
 }
 

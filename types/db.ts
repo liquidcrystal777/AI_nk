@@ -1,10 +1,32 @@
+export type ThemeMode = "light" | "dark";
+
 export type WordStatus = "new" | "vague" | "known" | "mastered";
+
+export type RecordMode = "reading" | "general";
+
+export type CardType = "normal" | "phrase" | "rare_meaning" | "comparison";
+
+export type ComparisonWordInfo = {
+  spell: string;
+  partOfSpeech: string;
+  meaning: string;
+  usageExplanation: string;
+  keyDifference: string;
+};
+
+export type ComparisonContent = {
+  wordA: ComparisonWordInfo;
+  wordB: ComparisonWordInfo;
+  commonContext: string;
+  contrastSummary: string;
+};
 
 export type SettingsRecord = {
   id: 1;
   aiApiKey: string;
   aiBaseUrl: string;
   aiModelName: string;
+  theme: ThemeMode;
 };
 
 export type WordRecord = {
@@ -13,15 +35,25 @@ export type WordRecord = {
   partOfSpeech: string;
   meaning: string;
   originalSentence: string;
+  representativeSentence?: string;
   usageExplanation: string;
+  rootMemory?: string;
+  associationMemory?: string;
   sentiment: string;
   deodorizedMeaning: string;
   year: string;
   sourceTextId: string;
+  mode: RecordMode;
   status: WordStatus;
   reviewCount: number;
   lastReviewTime?: number;
   nextReviewTime: number;
+  cardType: CardType;
+  excludeFromReview: boolean;
+  comparisonData?: ComparisonContent;
+  structureAnalysis?: string;
+  collocationTrap?: string;
+  typicalContext?: string;
 };
 
 export type RecordDraft = {
@@ -29,11 +61,23 @@ export type RecordDraft = {
   partOfSpeech: string;
   meaning: string;
   originalSentence: string;
+  representativeSentence: string;
   usageExplanation: string;
+  rootMemory?: string;
+  associationMemory?: string;
   sentiment: string;
   deodorizedMeaning: string;
   year: string;
   sourceTextId: string;
+  mode: RecordMode;
+  cardType: CardType;
+  excludeFromReview: boolean;
+  comparisonData?: ComparisonContent;
+  structureAnalysis?: string;
+  collocationTrap?: string;
+  typicalContext?: string;
+  comparisonWordA?: string;
+  comparisonWordB?: string;
 };
 
 export type BrowseFilters = {

@@ -1,8 +1,11 @@
+import type { SettingsRecord } from "@/types/db";
+
 export const SETTINGS_ID = 1 as const;
-export const APP_NAME = "考研英语神器";
+export const APP_NAME = "Vocab.md";
 export const APP_PURPLE = "#660874";
 export const DEFAULT_AI_BASE_URL = "https://api.deepseek.com/v1";
 export const DEFAULT_AI_MODEL_NAME = "deepseek-chat";
+export const DEFAULT_THEME = "light" as const;
 
 export const REVIEW_DELAYS = {
   fail: 5 * 60 * 1000,
@@ -12,9 +15,10 @@ export const REVIEW_DELAYS = {
   mastered: 7 * 24 * 60 * 60 * 1000,
 } as const;
 
-export const DEFAULT_SETTINGS = {
+export const DEFAULT_SETTINGS: SettingsRecord = {
   id: SETTINGS_ID,
   aiApiKey: "",
   aiBaseUrl: "",
   aiModelName: DEFAULT_AI_MODEL_NAME,
+  theme: DEFAULT_THEME,
 };

@@ -11,6 +11,7 @@ function normalizeSettingsInput(input: Omit<SettingsRecord, "id">): Omit<Setting
     aiApiKey: input.aiApiKey.trim(),
     aiBaseUrl: input.aiBaseUrl.trim(),
     aiModelName: input.aiModelName.trim() || DEFAULT_AI_MODEL_NAME,
+    theme: normalizeSingleLineText(input.theme) === "dark" ? "dark" : DEFAULT_SETTINGS.theme,
   };
 }
 
@@ -32,14 +33,22 @@ export async function createWord(draft: RecordDraft) {
     partOfSpeech: normalizeSingleLineText(draft.partOfSpeech),
     meaning: normalizeSingleLineText(draft.meaning),
     originalSentence: normalizeMultilineText(draft.originalSentence),
+    representativeSentence: normalizeMultilineText(draft.representativeSentence),
     usageExplanation: normalizeMultilineText(draft.usageExplanation),
     sentiment: normalizeSingleLineText(draft.sentiment),
     deodorizedMeaning: normalizeMultilineText(draft.deodorizedMeaning),
     year: normalizeSingleLineText(draft.year),
     sourceTextId: normalizeSingleLineText(draft.sourceTextId),
+    mode: draft.mode,
     status: "new",
     reviewCount: 0,
     nextReviewTime: now,
+    cardType: draft.cardType || "normal",
+    excludeFromReview: draft.excludeFromReview || false,
+    comparisonData: draft.comparisonData,
+    structureAnalysis: draft.structureAnalysis ? normalizeMultilineText(draft.structureAnalysis) : undefined,
+    collocationTrap: draft.collocationTrap ? normalizeMultilineText(draft.collocationTrap) : undefined,
+    typicalContext: draft.typicalContext ? normalizeMultilineText(draft.typicalContext) : undefined,
   });
 }
 
@@ -95,10 +104,6 @@ export async function importBackupPayload(
 }
 
 export async function applyReviewAction(id: number, action: ReviewAction, now = Date.now()) {
-  if (action === "skip") {
-    return;
-  }
-
   const word = await db.words.get(id);
   if (!word) {
     throw new Error("单词不存在，无法更新复习状态");

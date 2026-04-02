@@ -4,6 +4,204 @@
   --background: #f6f4f8;
   --foreground: #171717;
   --color-primary: #660874;
+  --page-surface: linear-gradient(180deg, #fbf8ff 0%, #ffffff 38%);
+  --shell-bg: rgba(255, 255, 255, 0.72);
+  --shell-border: rgba(255, 255, 255, 0.82);
+  --shell-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+  --panel-bg: rgba(255, 255, 255, 0.82);
+  --panel-border: rgba(226, 232, 240, 0.82);
+  --panel-shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
+  --card-bg: rgba(255, 255, 255, 0.92);
+  --card-bg-secondary: rgba(248, 250, 252, 0.94);
+  --muted-foreground: rgba(64, 64, 64, 0.72);
+  --theme-accent-strong: #660874;
+  --theme-accent-soft: rgba(102, 8, 116, 0.22);
+  --theme-accent-muted: rgba(102, 8, 116, 0.08);
+  --theme-accent-faint: rgba(102, 8, 116, 0.04);
+  /* Word card specific */
+  --card-surface: #ffffff;
+  --card-border: rgba(102, 8, 116, 0.12);
+  --card-text: #1a1a1a;
+  --card-text-muted: #6b7280;
+  --card-label-color: #660874;
+  --card-header-bg: linear-gradient(135deg, #5f0b71 0%, #7d2e8e 100%);
+  --card-header-text: #ffffff;
+  --card-browse-header-bg: #ffffff;
+  --card-browse-header-text: #2e1836;
+  --card-browse-header-border: rgba(102, 8, 116, 0.12);
+  --card-tag-bg: rgba(102, 8, 116, 0.08);
+  --card-tag-border: rgba(102, 8, 116, 0.15);
+  --card-tag-text: #660874;
+  --card-footer-bg: rgba(250, 250, 250, 0.8);
+  --card-footer-border: #e5e7eb;
+  --card-comparison-divider: rgba(192, 132, 252, 0.3);
+  --card-comparison-word-a: #7c3aed;
+  --card-comparison-word-b: #4f46e5;
+  --card-rare-meaning-common-bg: #f3f4f6;
+  --card-rare-meaning-rare-bg: rgba(192, 132, 252, 0.1);
+  --card-rare-meaning-rare-border: rgba(192, 132, 252, 0.3);
+  /* Common components */
+  --section-card-bg: rgba(255, 255, 255, 0.92);
+  --section-card-border: rgba(226, 232, 240, 0.92);
+  --section-card-shadow: 0 14px 38px rgba(15, 23, 42, 0.08);
+  --empty-state-bg: rgba(248, 250, 252, 0.9);
+  --empty-state-border: rgba(209, 213, 219, 0.9);
+  --empty-state-title: #171717;
+  --empty-state-text: #525252;
+  --loading-card-bg: rgba(255, 255, 255, 0.92);
+  --loading-card-border: rgba(226, 232, 240, 0.92);
+  --loading-card-text: #6b7280;
+  /* Review components */
+  --review-panel-bg: linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(250,244,255,0.92) 100%);
+  --review-panel-border: rgba(255, 255, 255, 0.8);
+  --review-panel-text: #6b7280;
+  --review-hero-bg: linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(247,239,251,0.92) 100%);
+  --review-hero-border: rgba(255, 255, 255, 0.85);
+  --review-hero-text: #2d1634;
+  --review-hero-pos: #a78bba;
+  --review-btn-bg: rgba(102, 8, 116, 0.08);
+  --review-btn-border: #eee3f3;
+  --review-btn-text: #660874;
+  --review-btn-label: #374151;
+  --review-action-bg: rgba(255, 255, 255, 0.97);
+  --review-action-border: rgba(229, 231, 235, 0.9);
+  --review-action-text: #1f2937;
+  --review-action-icon-bg: rgba(243, 244, 246, 0.9);
+  /* Delete confirmation */
+  --delete-panel-bg: rgba(254, 242, 242, 0.9);
+  --delete-panel-border: rgba(253, 164, 175, 0.8);
+  --delete-panel-text: #be123c;
+  --delete-panel-muted: #f43f5e;
+  --delete-confirm-bg: #f43f5e;
+  --delete-confirm-hover: #e11d48;
+  --delete-cancel-bg: rgba(255, 255, 255, 0.9);
+  --delete-cancel-border: rgba(229, 231, 235, 0.9);
+  --delete-cancel-text: #4b5563;
+  /* Browse footer */
+  --browse-footer-bg: rgba(250, 250, 250, 0.8);
+  --browse-footer-border: rgba(229, 231, 235, 0.9);
+  --browse-tag-bg: rgba(102, 8, 116, 0.08);
+  --browse-tag-border: rgba(102, 8, 116, 0.15);
+  --browse-tag-text: #660874;
+  /* Comparison notice */
+  --comparison-notice-bg: rgba(243, 244, 246, 0.9);
+  --comparison-notice-text: #6b7280;
+  /* Editor form */
+  --editor-section-bg: rgba(255, 255, 255, 0.94);
+  --editor-section-border: rgba(255, 255, 255, 0.85);
+  --editor-section-title: #8c6594;
+  --editor-section-desc: #6b7280;
+  --editor-preview-bg: linear-gradient(180deg, rgba(255,255,255,0.97) 0%, rgba(249,244,251,0.94) 100%);
+  --editor-preview-border: rgba(255, 255, 255, 0.85);
+  --editor-preview-title: #8c6594;
+  --editor-input-bg: #fcfbff;
+  --editor-input-border: rgba(229, 231, 235, 0.9);
+  --editor-input-text: #1f2937;
+  --editor-input-placeholder: rgba(163, 163, 163, 0.9);
+  --editor-input-focus-border: rgba(214, 184, 221, 0.9);
+  --editor-label: rgba(163, 163, 163, 0.9);
+}
+
+[data-theme="dark"] {
+  --background: #0a0610;
+  --foreground: #f6eff8;
+  --color-primary: #d58cff;
+  --page-surface: radial-gradient(circle at top, #1a0f2e 0%, #050208 100%);
+  --shell-bg: rgba(10, 6, 16, 0.85);
+  --shell-border: rgba(255, 255, 255, 0.08);
+  --shell-shadow: 0 30px 90px rgba(0, 0, 0, 0.5);
+  --panel-bg: rgba(255, 255, 255, 0.04);
+  --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  --card-bg: rgba(255, 255, 255, 0.04);
+  --card-bg-secondary: rgba(255, 255, 255, 0.06);
+  --muted-foreground: rgba(240, 231, 245, 0.65);
+  --theme-accent-strong: #c084fc;
+  --theme-accent-soft: rgba(192, 132, 252, 0.25);
+  --theme-accent-muted: rgba(192, 132, 252, 0.15);
+  --theme-accent-faint: rgba(192, 132, 252, 0.08);
+  /* Word card specific - dark mode */
+  --card-surface: rgba(20, 12, 30, 0.9);
+  --card-border: rgba(192, 132, 252, 0.15);
+  --card-text: #f0e6f6;
+  --card-text-muted: #a78bba;
+  --card-label-color: #c084fc;
+  --card-header-bg: linear-gradient(135deg, #4a0d5c 0%, #5c1f6b 100%);
+  --card-header-text: #f6eff8;
+  --card-browse-header-bg: rgba(25, 15, 35, 0.95);
+  --card-browse-header-text: #e8def0;
+  --card-browse-header-border: rgba(192, 132, 252, 0.15);
+  --card-tag-bg: rgba(192, 132, 252, 0.12);
+  --card-tag-border: rgba(192, 132, 252, 0.2);
+  --card-tag-text: #d8b4fe;
+  --card-footer-bg: rgba(15, 10, 22, 0.9);
+  --card-footer-border: rgba(192, 132, 252, 0.12);
+  --card-comparison-divider: rgba(192, 132, 252, 0.25);
+  --card-comparison-word-a: #a855f7;
+  --card-comparison-word-b: #818cf8;
+  --card-rare-meaning-common-bg: rgba(255, 255, 255, 0.05);
+  --card-rare-meaning-rare-bg: rgba(192, 132, 252, 0.12);
+  --card-rare-meaning-rare-border: rgba(192, 132, 252, 0.25);
+  /* Common components - dark mode */
+  --section-card-bg: rgba(255, 255, 255, 0.04);
+  --section-card-border: rgba(255, 255, 255, 0.08);
+  --section-card-shadow: 0 24px 80px rgba(0, 0, 0, 0.4);
+  --empty-state-bg: rgba(255, 255, 255, 0.06);
+  --empty-state-border: rgba(255, 255, 255, 0.12);
+  --empty-state-title: #f0e6f6;
+  --empty-state-text: #a78bba;
+  --loading-card-bg: rgba(255, 255, 255, 0.04);
+  --loading-card-border: rgba(255, 255, 255, 0.08);
+  --loading-card-text: #a78bba;
+  /* Review components - dark mode */
+  --review-panel-bg: linear-gradient(180deg, rgba(25,15,35,0.95) 0%, rgba(20,12,30,0.92) 100%);
+  --review-panel-border: rgba(192, 132, 252, 0.15);
+  --review-panel-text: #a78bba;
+  --review-hero-bg: linear-gradient(180deg, rgba(25,15,35,0.97) 0%, rgba(20,12,28,0.92) 100%);
+  --review-hero-border: rgba(192, 132, 252, 0.12);
+  --review-hero-text: #f6eff8;
+  --review-hero-pos: #c084fc;
+  --review-btn-bg: rgba(192, 132, 252, 0.12);
+  --review-btn-border: rgba(192, 132, 252, 0.2);
+  --review-btn-text: #c084fc;
+  --review-btn-label: #e8def0;
+  --review-action-bg: rgba(25, 15, 35, 0.95);
+  --review-action-border: rgba(192, 132, 252, 0.15);
+  --review-action-text: #f0e6f6;
+  --review-action-icon-bg: rgba(192, 132, 252, 0.12);
+  /* Delete confirmation - dark mode */
+  --delete-panel-bg: rgba(254, 242, 242, 0.06);
+  --delete-panel-border: rgba(253, 164, 175, 0.2);
+  --delete-panel-text: #fda4af;
+  --delete-panel-muted: #fb7185;
+  --delete-confirm-bg: #be123c;
+  --delete-confirm-hover: #9f1239;
+  --delete-cancel-bg: rgba(255, 255, 255, 0.04);
+  --delete-cancel-border: rgba(192, 132, 252, 0.15);
+  --delete-cancel-text: #d8b4fe;
+  /* Browse footer - dark mode */
+  --browse-footer-bg: rgba(15, 10, 22, 0.9);
+  --browse-footer-border: rgba(192, 132, 252, 0.12);
+  --browse-tag-bg: rgba(192, 132, 252, 0.12);
+  --browse-tag-border: rgba(192, 132, 252, 0.2);
+  --browse-tag-text: #d8b4fe;
+  /* Comparison notice - dark mode */
+  --comparison-notice-bg: rgba(255, 255, 255, 0.05);
+  --comparison-notice-text: #a78bba;
+  /* Editor form - dark mode */
+  --editor-section-bg: rgba(25, 15, 35, 0.9);
+  --editor-section-border: rgba(192, 132, 252, 0.15);
+  --editor-section-title: #c084fc;
+  --editor-section-desc: #a78bba;
+  --editor-preview-bg: linear-gradient(180deg, rgba(25,15,35,0.97) 0%, rgba(20,12,28,0.94) 100%);
+  --editor-preview-border: rgba(192, 132, 252, 0.12);
+  --editor-preview-title: #c084fc;
+  --editor-input-bg: rgba(20, 12, 30, 0.9);
+  --editor-input-border: rgba(192, 132, 252, 0.15);
+  --editor-input-text: #f0e6f6;
+  --editor-input-placeholder: rgba(167, 139, 186, 0.6);
+  --editor-input-focus-border: rgba(192, 132, 252, 0.4);
+  --editor-label: rgba(167, 139, 186, 0.8);
 }
 
 @theme inline {
@@ -12,22 +210,34 @@
   --color-primary: var(--color-primary);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-latex: "Computer Modern Serif", "Times New Roman", STSong, "Songti SC", SimSun, "Noto Serif SC", serif;
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body {
+  min-height: 100%;
+}
+
 html {
   background: var(--background);
+  color-scheme: light;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
+  min-height: 100dvh;
+  padding-bottom: env(safe-area-inset-bottom, 0);
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), "Helvetica Neue", Helvetica, Arial, sans-serif;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease;
 }
 
 button,

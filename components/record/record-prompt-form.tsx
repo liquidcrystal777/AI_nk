@@ -1,26 +1,238 @@
-import { useEffect, useMemo, useRef } from "react";
-import { APP_PURPLE } from "@/lib/utils/constants";
-import type { RecordDraft } from "@/types/db";
+import Link from "next/link";
+import { useRef } from "react";
+import type { CardType, RecordDraft, RecordMode } from "@/types/db";
 
 const SOURCE_TEXT_OPTIONS = ["TEXT1", "TEXT2", "TEXT3", "TEXT4"] as const;
-const YEAR_OPTIONS = Array.from({ length: 26 }, (_, index) => String(1998 + index));
-const WHEEL_HEIGHT = 128;
-const WHEEL_ITEM_HEIGHT = 40;
-const WHEEL_SIDE_PADDING = (WHEEL_HEIGHT - WHEEL_ITEM_HEIGHT) / 2;
 
 type RecordPromptFormProps = {
   draft: RecordDraft;
   error: string;
   isGenerating: boolean;
   canGenerate: boolean;
+  hasAiSettings: boolean;
   onFieldChange: <K extends keyof RecordDraft>(key: K, value: RecordDraft[K]) => void;
   onGenerate: () => void;
 };
 
-type WheelOption = {
-  value: string;
+type SourceTextOption = {
+  value: (typeof SOURCE_TEXT_OPTIONS)[number];
   label: string;
 };
+
+const sourceTextOptions: SourceTextOption[] = [
+  { value: "TEXT1", label: "1" },
+  { value: "TEXT2", label: "2" },
+  { value: "TEXT3", label: "3" },
+  { value: "TEXT4", label: "4" },
+];
+
+const modeOptions: Array<{ value: RecordMode; label: string }> = [
+  { value: "reading", label: "阅读模式" },
+  { value: "general", label: "通用模式" },
+];
+
+const cardTypeOptions: Array<{ value: CardType; label: string; description: string }> = [
+  { value: "normal", label: "普通", description: "标准单词卡片" },
+  { value: "phrase", label: "词组", description: "搭配、短语" },
+  { value: "rare_meaning", label: "僻义", description: "熟词僻义" },
+  { value: "comparison", label: "对比", description: "辨析易混词" },
+];
+
+function YearInput({ value, onChange }: { value: string; onChange: (value: string) => void }) {
+  return (
+    <label className="block space-y-2">
+      <div className="text-center text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: "var(--editor-section-title)" }}>Year</div>
+      <input
+        type="text"
+        inputMode="numeric"
+        maxLength={4}
+        value={value}
+        onChange={(event) => onChange(event.target.value.replace(/\D/g, "").slice(0, 4))}
+        placeholder="2020"
+        className="w-full rounded-[1.4rem] px-4 py-3 text-center font-serif text-[1.55rem] font-semibold tracking-[0.16em] shadow-[0_18px_38px_rgba(102,8,116,0.08)] outline-none transition"
+        style={{
+          borderColor: "var(--theme-accent-soft)",
+          background: "var(--card-bg)",
+          color: "var(--theme-accent-strong)",
+        }}
+      />
+    </label>
+  );
+}
+
+function ModeToggle({ value, onChange }: { value: RecordMode; onChange: (value: RecordMode) => void }) {
+  return (
+    <div className="space-y-3">
+      <div className="text-center text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: "var(--editor-section-title)" }}>Mode</div>
+      <div
+        className="grid grid-cols-2 gap-2 rounded-[1.3rem] p-1 shadow-[0_10px_24px_rgba(15,23,42,0.06)]"
+        style={{
+          border: "1px solid var(--theme-accent-soft)",
+          backgroundColor: "var(--card-bg)",
+        }}
+      >
+        {modeOptions.map((option) => {
+          const isActive = option.value === value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className="rounded-[1rem] px-3 py-3 text-sm font-semibold transition active:scale-[0.99]"
+              style={{
+                background: isActive ? "var(--theme-accent-strong)" : "transparent",
+                color: isActive ? "#ffffff" : "var(--theme-accent-strong)",
+                boxShadow: isActive ? "0 10px 24px rgba(102,8,116,0.18)" : "none",
+              }}
+              aria-pressed={isActive}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CardTypeSelector({ value, onChange }: { value: CardType; onChange: (value: CardType) => void }) {
+  return (
+    <div className="space-y-3">
+      <div className="text-center text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: "var(--editor-section-title)" }}>Card Type</div>
+      <div
+        className="grid grid-cols-4 gap-1.5 rounded-[1.3rem] p-1.5 shadow-[0_10px_24px_rgba(15,23,42,0.06)]"
+        style={{
+          border: "1px solid var(--theme-accent-soft)",
+          backgroundColor: "var(--card-bg)",
+        }}
+      >
+        {cardTypeOptions.map((option) => {
+          const isActive = option.value === value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className="rounded-[0.85rem] px-2 py-2.5 text-xs font-semibold transition active:scale-[0.99]"
+              style={{
+                background: isActive ? "var(--theme-accent-strong)" : "transparent",
+                color: isActive ? "#ffffff" : "var(--theme-accent-strong)",
+                boxShadow: isActive ? "0 8px 16px rgba(102,8,116,0.18)" : "none",
+              }}
+              aria-pressed={isActive}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ComparisonInput({
+  valueA,
+  valueB,
+  onChangeA,
+  onChangeB,
+}: {
+  valueA: string;
+  valueB: string;
+  onChangeA: (value: string) => void;
+  onChangeB: (value: string) => void;
+}) {
+  const inputRefA = useRef<HTMLInputElement | null>(null);
+  const inputRefB = useRef<HTMLInputElement | null>(null);
+
+  return (
+    <div className="flex items-center justify-center gap-4">
+      <input
+        ref={inputRefA}
+        value={valueA}
+        onChange={(e) => onChangeA(e.target.value)}
+        className="pointer-events-none absolute opacity-0"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        tabIndex={-1}
+      />
+      <input
+        ref={inputRefB}
+        value={valueB}
+        onChange={(e) => onChangeB(e.target.value)}
+        className="pointer-events-none absolute opacity-0"
+        autoCapitalize="none"
+        autoCorrect="off"
+        spellCheck={false}
+        tabIndex={-1}
+      />
+      <button
+        type="button"
+        onClick={() => inputRefA.current?.focus()}
+        className="min-h-[3.5rem] min-w-[8rem] rounded-[1.5rem] px-4 text-center text-lg font-semibold shadow-[0_12px_28px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
+        style={{
+          borderColor: valueA ? "var(--theme-accent-strong)" : "var(--theme-accent-soft)",
+          backgroundColor: valueA ? "var(--theme-accent-muted)" : "var(--theme-accent-faint)",
+          color: "var(--theme-accent-strong)",
+          border: "1px solid",
+        }}
+      >
+        {valueA || "单词A"}
+      </button>
+      <span className="text-lg font-bold" style={{ color: "var(--theme-accent-strong)" }}>vs</span>
+      <button
+        type="button"
+        onClick={() => inputRefB.current?.focus()}
+        className="min-h-[3.5rem] min-w-[8rem] rounded-[1.5rem] px-4 text-center text-lg font-semibold shadow-[0_12px_28px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
+        style={{
+          borderColor: valueB ? "var(--theme-accent-strong)" : "var(--theme-accent-soft)",
+          backgroundColor: valueB ? "var(--theme-accent-muted)" : "var(--theme-accent-faint)",
+          color: "var(--theme-accent-strong)",
+          border: "1px solid",
+        }}
+      >
+        {valueB || "单词B"}
+      </button>
+    </div>
+  );
+}
+
+function SourceTextButtons({ value, onChange }: { value: string; onChange: (value: SourceTextOption["value"]) => void }) {
+  return (
+    <div className="space-y-3">
+      <div className="text-center text-[11px] font-semibold uppercase tracking-[0.24em]" style={{ color: "var(--editor-section-title)" }}>Text</div>
+      <div className="flex items-center justify-center gap-3">
+        {sourceTextOptions.map((option) => {
+          const isActive = option.value === value;
+
+          return (
+            <button
+              key={option.value}
+              type="button"
+              onClick={() => onChange(option.value)}
+              className="flex h-12 w-12 items-center justify-center rounded-full text-base font-bold transition active:scale-[0.98]"
+              style={{
+                borderColor: isActive ? "var(--theme-accent-strong)" : "var(--theme-accent-soft)",
+                backgroundColor: isActive ? "var(--theme-accent-strong)" : "var(--card-bg)",
+                color: isActive ? "#ffffff" : "var(--theme-accent-strong)",
+                boxShadow: isActive
+                  ? "0 12px 28px rgba(102,8,116,0.18)"
+                  : "0 10px 24px rgba(15,23,42,0.06)",
+                border: "1px solid",
+              }}
+              aria-pressed={isActive}
+              aria-label={`选择 Text ${option.label}`}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 function VintageInputDisplay({ value, onClick }: { value: string; onClick: () => void }) {
   return (
@@ -28,21 +240,27 @@ function VintageInputDisplay({ value, onClick }: { value: string; onClick: () =>
       <button
         type="button"
         onClick={onClick}
-        className="flex min-h-[11.5rem] w-full items-center justify-center rounded-[2rem] border px-6 text-center shadow-[0_18px_40px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
+        className="flex min-h-[11.5rem] w-full items-center justify-center rounded-[2rem] px-6 text-center shadow-[0_18px_40px_rgba(102,8,116,0.08)] transition active:scale-[0.99]"
         style={{
-          borderColor: "rgba(102,8,116,0.18)",
-          backgroundColor: "rgba(102,8,116,0.06)",
+          borderColor: "var(--theme-accent-soft)",
+          backgroundColor: "var(--theme-accent-faint)",
+          border: "1px solid",
         }}
         aria-label="输入单词"
       >
-        <div className="font-mono text-[2rem] font-semibold tracking-[0.08em] sm:text-[2.35rem]" style={{ color: APP_PURPLE }}>
+        <div className="vintage-input-text font-mono text-[2rem] font-semibold tracking-[0.08em] sm:text-[2.35rem]">
           <span>{value || ""}</span>
-          <span className="ml-1 inline-block vintage-caret">|</span>
+          <span className="vintage-caret ml-1 inline-block">|</span>
         </div>
       </button>
 
       <style jsx>{`
+        .vintage-input-text {
+          color: var(--theme-accent-strong);
+        }
+
         .vintage-caret {
+          color: var(--theme-accent-strong);
           animation: vintage-caret-blink 1s steps(1, end) infinite;
         }
 
@@ -62,165 +280,129 @@ function VintageInputDisplay({ value, onClick }: { value: string; onClick: () =>
   );
 }
 
-function WheelPicker({
-  value,
-  options,
-  onChange,
-}: {
-  value: string;
-  options: WheelOption[];
-  onChange: (value: string) => void;
-}) {
-  const containerRef = useRef<HTMLDivElement | null>(null);
-
-  const selectedIndex = useMemo(() => {
-    const index = options.findIndex((option) => option.value === value);
-    return index >= 0 ? index : 0;
-  }, [options, value]);
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-
-    container.scrollTo({ top: selectedIndex * WHEEL_ITEM_HEIGHT, behavior: "smooth" });
-  }, [selectedIndex]);
-
-  function updateFromScroll(scrollTop: number) {
-    const nextIndex = Math.max(0, Math.min(options.length - 1, Math.round(scrollTop / WHEEL_ITEM_HEIGHT)));
-    const nextValue = options[nextIndex]?.value;
-    if (nextValue && nextValue !== value) {
-      onChange(nextValue);
-    }
-  }
-
-  return (
-    <>
-      <div className="relative">
-        <div
-          className="pointer-events-none absolute left-0 right-0 z-10 rounded-[0.95rem] border-y"
-          style={{
-            top: `${WHEEL_SIDE_PADDING}px`,
-            height: `${WHEEL_ITEM_HEIGHT}px`,
-            borderColor: "rgba(102,8,116,0.14)",
-            backgroundColor: "rgba(102,8,116,0.05)",
-          }}
-        />
-
-        <div
-          className="pointer-events-none absolute inset-x-0 top-0 z-20"
-          style={{
-            height: `${WHEEL_SIDE_PADDING}px`,
-            background: "linear-gradient(180deg, rgba(246,244,248,0.94) 0%, rgba(246,244,248,0) 100%)",
-          }}
-        />
-
-        <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 z-20"
-          style={{
-            height: `${WHEEL_SIDE_PADDING}px`,
-            background: "linear-gradient(0deg, rgba(246,244,248,0.94) 0%, rgba(246,244,248,0) 100%)",
-          }}
-        />
-
-        <div
-          ref={containerRef}
-          onScroll={(event) => updateFromScroll(event.currentTarget.scrollTop)}
-          className="wheel-picker overflow-y-scroll snap-y snap-mandatory"
-          style={{ height: `${WHEEL_HEIGHT}px` }}
-        >
-          <div style={{ paddingTop: `${WHEEL_SIDE_PADDING}px`, paddingBottom: `${WHEEL_SIDE_PADDING}px` }}>
-            {options.map((option, index) => {
-              const distance = Math.abs(index - selectedIndex);
-              const isActive = index === selectedIndex;
-
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => {
-                    containerRef.current?.scrollTo({ top: index * WHEEL_ITEM_HEIGHT, behavior: "smooth" });
-                    onChange(option.value);
-                  }}
-                  className="flex w-full snap-center items-center justify-center bg-transparent px-2 text-center transition-all duration-150"
-                  style={{
-                    height: `${WHEEL_ITEM_HEIGHT}px`,
-                    color: isActive ? APP_PURPLE : "#9ca3af",
-                    fontSize: isActive ? "1.18rem" : distance === 1 ? "0.92rem" : "0.78rem",
-                    fontWeight: isActive ? 800 : distance === 1 ? 600 : 500,
-                    opacity: isActive ? 1 : distance === 1 ? 0.62 : 0.32,
-                    transform: `scale(${isActive ? 1 : distance === 1 ? 0.93 : 0.87})`,
-                    textShadow: isActive ? "0 1px 0 rgba(255,255,255,0.6)" : "none",
-                    fontFamily: '"Times New Roman", "Georgia", serif',
-                    letterSpacing: isActive ? "0.14em" : "0.1em",
-                  }}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      <style jsx>{`
-        .wheel-picker {
-          scrollbar-width: none;
-        }
-
-        .wheel-picker::-webkit-scrollbar {
-          display: none;
-        }
-      `}</style>
-    </>
-  );
-}
-
-export function RecordPromptForm({ draft, error, onFieldChange }: RecordPromptFormProps) {
+export function RecordPromptForm({ draft, error, isGenerating, hasAiSettings, onFieldChange }: RecordPromptFormProps) {
   const hiddenInputRef = useRef<HTMLInputElement | null>(null);
-  const yearOptions = YEAR_OPTIONS.map((year) => ({ value: year, label: year }));
-  const sourceTextOptions: WheelOption[] = [
-    { value: "TEXT1", label: "TEXT1" },
-    ...SOURCE_TEXT_OPTIONS.slice(1).map((option) => ({ value: option, label: option })),
-  ];
+  const isReadingMode = draft.mode === "reading";
+  const isComparison = draft.cardType === "comparison";
 
   return (
     <div className="flex flex-1 flex-col pt-6">
-      <input
-        ref={hiddenInputRef}
-        value={draft.spell}
-        onChange={(event) => onFieldChange("spell", event.target.value)}
-        className="pointer-events-none absolute opacity-0"
-        autoCapitalize="none"
-        autoCorrect="off"
-        spellCheck={false}
-        aria-hidden="true"
-        tabIndex={-1}
-      />
+      {isComparison ? null : (
+        <input
+          ref={hiddenInputRef}
+          value={draft.spell}
+          onChange={(event) => onFieldChange("spell", event.target.value)}
+          className="pointer-events-none absolute opacity-0"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          aria-hidden="true"
+          tabIndex={-1}
+        />
+      )}
 
       <div className="flex flex-1 flex-col">
-        <div className="flex flex-1 items-center justify-center">
-          <VintageInputDisplay value={draft.spell} onClick={() => hiddenInputRef.current?.focus()} />
-        </div>
-
         <div className="mt-4 flex justify-center">
-          <div className="w-1/2 min-w-[9rem]">
-            <WheelPicker value={draft.year} options={yearOptions} onChange={(nextValue) => onFieldChange("year", nextValue)} />
+          <div className="w-full max-w-[18rem]">
+            <ModeToggle value={draft.mode} onChange={(nextValue) => onFieldChange("mode", nextValue)} />
           </div>
         </div>
 
-        <div className="mt-auto flex justify-center pt-3">
-          <div className="w-1/2 min-w-[9rem]">
-            <WheelPicker
+        <div className="mt-3 flex justify-center">
+          <div className="w-full max-w-[22rem]">
+            <CardTypeSelector value={draft.cardType || "normal"} onChange={(nextValue) => onFieldChange("cardType", nextValue)} />
+          </div>
+        </div>
+
+        {isComparison ? (
+          <div className="mt-6 flex flex-1 items-center justify-center">
+            <ComparisonInput
+              valueA={draft.comparisonWordA || ""}
+              valueB={draft.comparisonWordB || ""}
+              onChangeA={(v) => onFieldChange("comparisonWordA", v)}
+              onChangeB={(v) => onFieldChange("comparisonWordB", v)}
+            />
+          </div>
+        ) : (
+          <div className="mt-4 flex flex-1 items-center justify-center">
+            <VintageInputDisplay value={draft.spell} onClick={() => hiddenInputRef.current?.focus()} />
+          </div>
+        )}
+
+        {isReadingMode && !isComparison ? (
+          <div className="mt-4 flex justify-center">
+            <div className="w-full max-w-[12rem]">
+              <YearInput value={draft.year} onChange={(nextValue) => onFieldChange("year", nextValue)} />
+            </div>
+          </div>
+        ) : null}
+
+        {isReadingMode && !isComparison ? (
+          <div className="mt-auto flex justify-center pt-4">
+            <SourceTextButtons
               value={draft.sourceTextId}
-              options={sourceTextOptions}
               onChange={(nextValue) => onFieldChange("sourceTextId", nextValue)}
             />
           </div>
-        </div>
+        ) : isComparison ? (
+          <div className="mt-auto pt-4 text-center text-sm leading-6" style={{ color: "var(--editor-section-title)" }}>
+            对比卡片将生成两个易混淆单词的辨析内容，仅供查阅参考，不参与复习流程。
+          </div>
+        ) : (
+          <div className="mt-auto pt-4 text-center text-sm leading-6" style={{ color: "var(--editor-section-title)" }}>
+            通用模式将直接生成一个最具代表性的考研例句，不再依赖真题年份与文章来源。
+          </div>
+        )}
 
-        {error ? <div className="mt-4 rounded-[1.25rem] bg-red-50 px-4 py-3 text-sm text-red-600">{error}</div> : null}
+        {!hasAiSettings ? (
+          <div
+            className="mt-4 rounded-[1.25rem] px-4 py-3 text-sm"
+            style={{
+              backgroundColor: "rgba(254, 243, 199, 0.9)",
+              border: "1px solid rgba(253, 186, 116, 0.8)",
+              color: "#92400e",
+            }}
+          >
+            <div className="font-semibold">还没配置 AI 设置</div>
+            <div className="mt-1 leading-6" style={{ color: "#b45309" }}>请先填写 AI API Key 和模型名，再回来生成词卡。</div>
+            <Link
+              href="/settings"
+              className="mt-3 inline-flex min-h-10 items-center justify-center rounded-[0.95rem] px-3 py-2 text-sm font-semibold shadow-sm"
+              style={{
+                backgroundColor: "var(--card-bg)",
+                border: "1px solid rgba(253, 186, 116, 0.9)",
+                color: "#78350f",
+              }}
+            >
+              去设置页
+            </Link>
+          </div>
+        ) : null}
+
+        {isGenerating ? (
+          <div
+            className="mt-4 rounded-[1.25rem] px-4 py-3 text-center text-sm font-medium"
+            style={{
+              backgroundColor: "var(--theme-accent-muted)",
+              border: "1px solid var(--theme-accent-soft)",
+              color: "var(--theme-accent-strong)",
+            }}
+          >
+            {isComparison ? "正在生成对比辨析卡片，请稍等..." : isReadingMode ? "正在读取对应真题并生成词卡，请稍等..." : "正在生成通用模式代表句与词卡，请稍等..."}
+          </div>
+        ) : null}
+
+        {error ? (
+          <div
+            className="mt-4 rounded-[1.25rem] px-4 py-3 text-sm"
+            style={{
+              backgroundColor: "rgba(254, 242, 242, 0.9)",
+              color: "#dc2626",
+            }}
+          >
+            {error}
+          </div>
+        ) : null}
       </div>
     </div>
   );

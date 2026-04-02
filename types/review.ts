@@ -1,1 +1,1 @@
-export type ReviewAction = "fail" | "again" | "success" | "skip";
+export type ReviewAction = "fail" | "again" | "success";

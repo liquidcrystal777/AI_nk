@@ -16,7 +16,7 @@ export function BrowseSearchBar({ filters, onChange }: BrowseSearchBarProps) {
         <input
           value={filters.keyword}
           onChange={(event) => onChange({ ...filters, keyword: event.target.value })}
-          placeholder="搜索拼写、释义或例句"
+          placeholder="搜单词拼写"
           className="w-full bg-transparent text-sm text-neutral-700 outline-none placeholder:text-neutral-400"
         />
       </label>

@@ -18,7 +18,6 @@ export default function ReviewPage() {
     meaningSubmitting,
     handleAttitude,
     handleForget,
-    handleSkip,
     handleMeaningInputChange,
     handleMeaningSubmit,
     handleNextWord,
@@ -27,7 +26,7 @@ export default function ReviewPage() {
   return (
     <AppShell>
       <TopBar title="开始复习" showBack backHref="/" />
-      <main className="flex flex-1 flex-col bg-[linear-gradient(180deg,#f7f1fb_0%,#fcf8ff_24%,#ffffff_58%)] px-4 py-3">
+      <main className="flex flex-1 flex-col bg-[linear-gradient(180deg,#f7f1fb_0%,#fcf8ff_24%,#ffffff_58%)] px-4 py-3 pb-[calc(env(safe-area-inset-bottom,0px)+0.75rem)]">
         {loading ? (
           <LoadingCard text="正在加载待复习单词..." />
         ) : currentWord ? (
@@ -38,7 +37,6 @@ export default function ReviewPage() {
                 word={currentWord}
                 onSelect={handleAttitude}
                 onForget={handleForget}
-                onSkip={handleSkip}
               />
             )}
             {stage === "meaning" && (
@@ -51,7 +49,6 @@ export default function ReviewPage() {
                 onChange={handleMeaningInputChange}
                 onSubmit={handleMeaningSubmit}
                 onForget={handleForget}
-                onSkip={handleSkip}
               />
             )}
             {stage === "card" && (
