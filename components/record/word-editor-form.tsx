@@ -117,7 +117,7 @@ function NormalCardEditor({ draft, onFieldChange }: { draft: RecordDraft; onFiel
             onChange={(value) => onFieldChange("spell", value)}
           />
           <EditorSection
-            label="Part of speech"
+            label="词性"
             value={draft.partOfSpeech}
             placeholder="如 n. / v. / adj."
             onChange={(value) => onFieldChange("partOfSpeech", value)}
@@ -254,7 +254,7 @@ function RareMeaningCardEditor({ draft, onFieldChange }: { draft: RecordDraft; o
             onChange={(value) => onFieldChange("spell", value)}
           />
           <EditorSection
-            label="Part of speech"
+            label="词性"
             value={draft.partOfSpeech}
             placeholder="僻义词性"
             onChange={(value) => onFieldChange("partOfSpeech", value)}

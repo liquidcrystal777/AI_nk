@@ -194,20 +194,20 @@ function renderMemorySection(word: WordRecord) {
 
 // 获取记忆内容文本（用于浏览模式的紧凑显示）
 function getMemoryContent(word: WordRecord) {
-  const parts: string[] = [];
+  const lines: string[] = [];
 
   const hasRootMemory = word.rootMemory && word.rootMemory !== "无明确词根" && word.rootMemory !== "「无明确词根」";
   const hasAssociationMemory = word.associationMemory && word.associationMemory.trim();
 
   if (hasRootMemory) {
-    parts.push(`词根：${word.rootMemory}`);
+    lines.push(`词根：${word.rootMemory}`);
   }
   if (hasAssociationMemory) {
-    parts.push(`联想：${word.associationMemory}`);
+    lines.push(`联想：${word.associationMemory}`);
   }
 
-  if (parts.length > 0) {
-    return parts.join("；");
+  if (lines.length > 0) {
+    return lines.join("\n");
   }
 
   // fallback 到旧字段
@@ -393,10 +393,10 @@ export function WordCard({
                         <InlineLabel>1.原句：</InlineLabel>
                         <span className="font-serif italic tracking-wide">{word.originalSentence || "暂无原句"}</span>
                       </p>
-                      <p>
+                      <div>
                         <InlineLabel>2.记忆：</InlineLabel>
-                        <span>{getMemoryContent(word) || "暂无记忆"}</span>
-                      </p>
+                        <div className="mt-1 whitespace-pre-line">{getMemoryContent(word) || "暂无记忆"}</div>
+                      </div>
                       <p>
                         <InlineLabel>3.去味：</InlineLabel>
                         <span>{deodorizedMeaning.plain || word.deodorizedMeaning || "暂无去味"}</span>
