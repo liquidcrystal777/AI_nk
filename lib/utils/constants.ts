@@ -1,7 +1,7 @@
 import type { SettingsRecord } from "@/types/db";
 
 export const SETTINGS_ID = 1 as const;
-export const APP_NAME = "Vocab.md";
+export const APP_NAME = "AI-nk";
 export const APP_PURPLE = "#660874";
 export const DEFAULT_AI_BASE_URL = "https://api.deepseek.com/v1";
 export const DEFAULT_AI_MODEL_NAME = "deepseek-chat";

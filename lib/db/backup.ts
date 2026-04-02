@@ -2,7 +2,7 @@ import { APP_NAME } from "@/lib/utils/constants";
 import { normalizeMultilineText, normalizeSingleLineText } from "@/lib/utils/text";
 import type { BackupFile, BackupPayload, ImportMode, SettingsRecord, WordRecord } from "@/types/db";
 
-const BACKUP_FILE_FORMAT = "vocabulary-backup";
+const BACKUP_FILE_FORMAT = "ai-nk-backup";
 const BACKUP_FILE_VERSION = 1;
 
 const WORD_STATUS_VALUES = new Set<WordRecord["status"]>(["new", "vague", "known", "mastered"]);
@@ -78,7 +78,7 @@ export function createBackupFile(payload: BackupPayload): BackupFile {
 
 export function createBackupFilename() {
   const stamp = new Date().toISOString().replace(/[:]/g, "-").replace(/\..+$/, "");
-  return `vocabulary-backup-${stamp}.json`;
+  return `ai-nk-backup-${stamp}.json`;
 }
 
 export function downloadBackupFile(file: BackupFile) {

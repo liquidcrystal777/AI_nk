@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.liquidcrystal.vocabulary2",
-  appName: "Vocabulary2",
+  appId: "com.aink.app",
+  appName: "AI-nk",
   webDir: "out",
   server: {
     androidScheme: "https",

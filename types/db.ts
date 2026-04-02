@@ -92,7 +92,7 @@ export type BackupPayload = {
 };
 
 export type BackupFile = {
-  format: "vocabulary-backup";
+  format: "ai-nk-backup";
   formatVersion: 1;
   exportedAt: string;
   app: {

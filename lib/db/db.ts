@@ -51,12 +51,12 @@ async function ensureSettingsRecord(transaction: Transaction) {
   });
 }
 
-export class VocabularyDatabase extends Dexie {
+export class AInkDatabase extends Dexie {
   settings!: EntityTable<SettingsRecord, "id">;
   words!: EntityTable<WordRecord, "id">;
 
   constructor() {
-    super("vocabulary-local-db");
+    super("ai-nk-db");
 
     this.version(1).stores({
       settings: "id",
@@ -161,4 +161,4 @@ export class VocabularyDatabase extends Dexie {
   }
 }
 
-export const db = new VocabularyDatabase();
+export const db = new AInkDatabase();
