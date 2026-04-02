@@ -1,7 +1,9 @@
 import {
+  cleanRareMeaningAnalysisPrefix,
   formatWordSpell,
   normalizeCompactChineseList,
   normalizeMultilineTextWithLimit,
+  normalizePartOfSpeech,
   normalizeSingleLineText,
   takeFirstLine,
 } from "@/lib/utils/text";
@@ -15,7 +17,7 @@ function extractJsonString(input: string) {
 
 function assertWordDraftPayload(payload: Record<string, unknown>, mode: RecordDraft["mode"]) {
   const spell = formatWordSpell(payload.spell);
-  const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
+  const partOfSpeech = normalizePartOfSpeech(payload.partOfSpeech);
   const meaning = normalizeCompactChineseList(payload.meaning);
   const originalSentence = takeFirstLine(payload.originalSentence);
   const representativeSentence = takeFirstLine(payload.representativeSentence);
@@ -113,7 +115,7 @@ export function parseWordDraft(
 
 function assertPhraseDraftPayload(payload: Record<string, unknown>) {
   const spell = normalizeSingleLineText(payload.spell);
-  const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
+  const partOfSpeech = normalizePartOfSpeech(payload.partOfSpeech);
   const meaning = normalizeCompactChineseList(payload.meaning);
   const originalSentence = takeFirstLine(payload.originalSentence);
   const structureAnalysis = normalizeSingleLineText(payload.structureAnalysis);
@@ -166,12 +168,15 @@ export function parsePhraseDraft(
 
 function assertRareMeaningDraftPayload(payload: Record<string, unknown>) {
   const spell = formatWordSpell(payload.spell);
-  const partOfSpeech = normalizeSingleLineText(payload.partOfSpeech);
+  const partOfSpeech = normalizePartOfSpeech(payload.partOfSpeech);
   const meaning = normalizeSingleLineText(payload.meaning);
   const originalSentence = takeFirstLine(payload.originalSentence);
   const usageExplanation = takeFirstLine(payload.usageExplanation);
   const sentiment = normalizeSingleLineText(payload.sentiment);
-  const rareMeaningAnalysis = normalizeMultilineTextWithLimit(payload.rareMeaningAnalysis, 2);
+  // 清理可能存在的重复引导语前缀
+  const rareMeaningAnalysis = cleanRareMeaningAnalysisPrefix(
+    normalizeMultilineTextWithLimit(payload.rareMeaningAnalysis, 2)
+  );
 
   if (!spell || !partOfSpeech || !meaning || !originalSentence || !rareMeaningAnalysis) {
     throw new Error("AI 返回的熟词僻义 JSON 字段不完整，请重试。");
@@ -215,7 +220,7 @@ export function parseRareMeaningDraft(
 function assertComparisonWordInfo(payload: Record<string, unknown>): ComparisonWordInfo {
   return {
     spell: formatWordSpell(payload.spell) || "",
-    partOfSpeech: normalizeSingleLineText(payload.partOfSpeech) || "",
+    partOfSpeech: normalizePartOfSpeech(payload.partOfSpeech) || "",
     meaning: normalizeSingleLineText(payload.meaning) || "",
     usageExplanation: normalizeSingleLineText(payload.usageExplanation) || "",
     keyDifference: normalizeSingleLineText(payload.keyDifference) || "",

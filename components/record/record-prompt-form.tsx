@@ -148,25 +148,28 @@ function ComparisonInput({
 
   return (
     <div className="flex items-center justify-center gap-4">
+      {/* 隐藏输入框：使用 visibility:hidden 保持可聚焦，但视觉不可见 */}
       <input
         ref={inputRefA}
         value={valueA}
         onChange={(e) => onChangeA(e.target.value)}
-        className="pointer-events-none absolute opacity-0"
+        className="absolute opacity-0"
+        style={{ visibility: "hidden" }}
         autoCapitalize="none"
         autoCorrect="off"
         spellCheck={false}
-        tabIndex={-1}
+        tabIndex={0}
       />
       <input
         ref={inputRefB}
         value={valueB}
         onChange={(e) => onChangeB(e.target.value)}
-        className="pointer-events-none absolute opacity-0"
+        className="absolute opacity-0"
+        style={{ visibility: "hidden" }}
         autoCapitalize="none"
         autoCorrect="off"
         spellCheck={false}
-        tabIndex={-1}
+        tabIndex={0}
       />
       <button
         type="button"

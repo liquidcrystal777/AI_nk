@@ -111,12 +111,12 @@ const RARE_MEANING_ANALYZER_SYSTEM_PROMPT = [
   '  "originalSentence": "体现僻义用法的最短语境，首尾带省略号，20词以内",',
   '  "usageExplanation": "僻义的记忆抓手，1句话，如 company熟义公司，僻义同伴(来自 accompany)",',
   '  "sentiment": "[正+]/[负-]/[中性]，基于僻义语境判断",',
-  '  "rareMeaningAnalysis": "第一行：这个僻义为什么容易被忽略；第二行：考研中如何识别该僻义出场"',
+  '  "rareMeaningAnalysis": "第一行：这个僻义为什么容易被忽略（简短原因）；第二行：识别该僻义的具体方法或信号词"',
   "}",
   "关键原则：",
   "1. 必须是真正的熟词僻义，不是多义词罗列",
   "2. 熟义给最常见的一个，僻义给考研高频但考生易忽略的",
-  "3. rareMeaningAnalysis 专门分析僻义陷阱",
+  "3. rareMeaningAnalysis 第二行直接给出识别方法，不要加引导语如'考研中如何识别'",
   "4. 原句必须体现僻义用法，不能是熟义语境",
   "5. 所有字段必填，输出纯 JSON",
   "禁止输出 Markdown、代码块、JSON 之外的解释。",
@@ -169,6 +169,24 @@ const MEANING_JUDGE_SYSTEM_PROMPT = [
   '  "confidence": 0 到 1 之间的小数,',
   '  "reason": "一句中文理由，短而明确",',
   '  "acceptedAnswer": "可接受的核心中文答案，简短"',
+  "}",
+].join("\n");
+
+const RARE_MEANING_JUDGE_SYSTEM_PROMPT = [
+  "你是严格但宽容的考研英语熟词僻义判题器。",
+  "任务：判断用户输入的中文释义，是否表达了目标单词的**僻义**（而非熟义）。",
+  "判题原则：",
+  "1. 这是熟词僻义卡片，用户必须答出僻义才算正确，答熟义算错。",
+  "2. 僻义已明确标注在标准答案中，用户必须抓住僻义的核心含义。",
+  "3. 近义表达、白话表达、概括表达都可以判对，只要语义指向僻义。",
+  "4. 如果用户答出熟义（常见义），必须判错，因为这正是熟词僻义要训练避开的地方。",
+  "5. 只输出 JSON，不要输出 markdown 或解释性前后缀。",
+  "严格返回：",
+  "{",
+  '  "verdict": "correct 或 incorrect",',
+  '  "confidence": 0 到 1 之间的小数,',
+  '  "reason": "一句中文理由，短而明确，说明答的是僻义还是熟义"',
+  '  "acceptedAnswer": "可接受的僻义中文答案，简短"',
   "}",
 ].join("\n");
 
@@ -238,7 +256,29 @@ function buildMeaningJudgePrompt(params: {
   deodorizedMeaning: string;
   usageExplanation: string;
   userAnswer: string;
+  cardType: CardType;
 }) {
+  const isRareMeaning = params.cardType === "rare_meaning";
+
+  if (isRareMeaning) {
+    // 熟词僻义卡片：meaning 格式为 "熟义:xxx; 僻义:xxx"
+    const meaningParts = params.meaning.split(";").map((s) => s.trim());
+    const commonMeaning = meaningParts.find((s) => s.startsWith("熟义:"))?.replace("熟义:", "").trim() ?? "";
+    const rareMeaning = meaningParts.find((s) => s.startsWith("僻义:"))?.replace("僻义:", "").trim() ?? "";
+
+    return [
+      "这是【熟词僻义】卡片，用户必须答出僻义才算正确。",
+      `目标单词：${params.spell}`,
+      `熟义（常见义，答这个算错）：${commonMeaning}`,
+      `僻义（考点义，答这个才算对）：${rareMeaning}`,
+      `僻义解析：${params.deodorizedMeaning || "无"}`,
+      `用户答案：${params.userAnswer}`,
+      "判断用户是否答出了僻义的核心含义。",
+      "如果用户答的是熟义（常见义），必须判 incorrect。",
+      "只有答出僻义或其近义表达，才判 correct。",
+    ].join("\n");
+  }
+
   return [
     "请判断用户对单词词义的理解是否正确。",
     `目标单词：${params.spell}`,
@@ -527,7 +567,10 @@ export async function judgeMeaningAnswer(params: {
   deodorizedMeaning: string;
   usageExplanation: string;
   userAnswer: string;
+  cardType: CardType;
 }): Promise<AiMeaningJudgementPayload> {
+  const systemPrompt = params.cardType === "rare_meaning" ? RARE_MEANING_JUDGE_SYSTEM_PROMPT : MEANING_JUDGE_SYSTEM_PROMPT;
+
   return requestJsonPayload<AiMeaningJudgementPayload>({
     apiKey: params.apiKey,
     baseUrl: params.baseUrl,
@@ -537,7 +580,7 @@ export async function judgeMeaningAnswer(params: {
         apiKey: params.apiKey,
         endpoint,
         modelName,
-        systemPrompt: MEANING_JUDGE_SYSTEM_PROMPT,
+        systemPrompt,
         userPrompt: buildMeaningJudgePrompt(params),
         maxTokens: 600,
       }),

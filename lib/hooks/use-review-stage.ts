@@ -113,8 +113,9 @@ export function useReviewStage() {
         spell: currentWord.spell,
         meaning: currentWord.meaning,
         deodorizedMeaning: currentWord.deodorizedMeaning,
-        usageExplanation: currentWord.usageExplanation,
+        usageExplanation: currentWord.usageExplanation ?? "",
         userAnswer: trimmedInput,
+        cardType: currentWord.cardType,
       });
 
       const judgement = parseMeaningJudgement(response);
