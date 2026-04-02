@@ -155,7 +155,7 @@ function NormalCardEditor({ draft, onFieldChange }: { draft: RecordDraft; onFiel
           <EditorSection
             label="联想记忆"
             value={draft.associationMemory || ""}
-            placeholder="画面/谐音联想"
+            placeholder="画面/故事联想"
             onChange={(value) => onFieldChange("associationMemory", value)}
           />
         </div>
